@@ -35,33 +35,33 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Adds the image to the cache with the given identifier.
 
- @param image The image to cache.
- @param identifier The unique identifier for the image in the cache.
+ - Parameter image: The image to cache.
+ - Parameter identifier: The unique identifier for the image in the cache.
  */
 - (void)addImage:(UIImage *)image withIdentifier:(NSString *)identifier;
 
 /**
  Removes the image from the cache matching the given identifier.
 
- @param identifier The unique identifier for the image in the cache.
+ - Parameter identifier: The unique identifier for the image in the cache.
 
- @return A BOOL indicating whether or not the image was removed from the cache.
+ - Returns: A BOOL indicating whether or not the image was removed from the cache.
  */
 - (BOOL)removeImageWithIdentifier:(NSString *)identifier;
 
 /**
  Removes all images from the cache.
 
- @return A BOOL indicating whether or not all images were removed from the cache.
+ - Returns: A BOOL indicating whether or not all images were removed from the cache.
  */
 - (BOOL)removeAllImages;
 
 /**
  Returns the image in the cache associated with the given identifier.
 
- @param identifier The unique identifier for the image in the cache.
+ - Parameter identifier: The unique identifier for the image in the cache.
 
- @return An image for the matching identifier, or nil.
+ - Returns: An image for the matching identifier, or nil.
  */
 - (nullable UIImage *)imageWithIdentifier:(NSString *)identifier;
 @end
@@ -75,29 +75,29 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Adds the image to the cache using an identifier created from the request and additional identifier.
 
- @param image The image to cache.
- @param request The unique URL request identifing the image asset.
- @param identifier The additional identifier to apply to the URL request to identify the image.
+ - Parameter image: The image to cache.
+ - Parameter request: The unique URL request identifing the image asset.
+ - Parameter identifier: The additional identifier to apply to the URL request to identify the image.
  */
 - (void)addImage:(UIImage *)image forRequest:(NSURLRequest *)request withAdditionalIdentifier:(nullable NSString *)identifier;
 
 /**
  Removes the image from the cache using an identifier created from the request and additional identifier.
 
- @param request The unique URL request identifing the image asset.
- @param identifier The additional identifier to apply to the URL request to identify the image.
+ - Parameter request: The unique URL request identifing the image asset.
+ - Parameter identifier: The additional identifier to apply to the URL request to identify the image.
  
- @return A BOOL indicating whether or not all images were removed from the cache.
+ - Returns: A BOOL indicating whether or not all images were removed from the cache.
  */
 - (BOOL)removeImageforRequest:(NSURLRequest *)request withAdditionalIdentifier:(nullable NSString *)identifier;
 
 /**
  Returns the image from the cache associated with an identifier created from the request and additional identifier.
 
- @param request The unique URL request identifing the image asset.
- @param identifier The additional identifier to apply to the URL request to identify the image.
+ - Parameter request: The unique URL request identifing the image asset.
+ - Parameter identifier: The additional identifier to apply to the URL request to identify the image.
 
- @return An image for the matching request and identifier, or nil.
+ - Returns: An image for the matching request and identifier, or nil.
  */
 - (nullable UIImage *)imageforRequest:(NSURLRequest *)request withAdditionalIdentifier:(nullable NSString *)identifier;
 
@@ -126,7 +126,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Initialies the `AutoPurgingImageCache` instance with default values for memory capacity and preferred memory usage after purge limit. `memoryCapcity` defaults to `100 MB`. `preferredMemoryUsageAfterPurge` defaults to `60 MB`.
 
- @return The new `AutoPurgingImageCache` instance.
+ - Returns: The new `AutoPurgingImageCache` instance.
  */
 - (instancetype)init;
 
@@ -134,10 +134,10 @@ NS_ASSUME_NONNULL_BEGIN
  Initialies the `AutoPurgingImageCache` instance with the given memory capacity and preferred memory usage
  after purge limit.
 
- @param memoryCapacity The total memory capacity of the cache in bytes.
- @param preferredMemoryCapacity The preferred memory usage after purge in bytes.
+ - Parameter memoryCapacity: The total memory capacity of the cache in bytes.
+ - Parameter preferredMemoryCapacity: The preferred memory usage after purge in bytes.
 
- @return The new `AutoPurgingImageCache` instance.
+ - Returns: The new `AutoPurgingImageCache` instance.
  */
 - (instancetype)initWithMemoryCapacity:(UInt64)memoryCapacity preferredMemoryCapacity:(UInt64)preferredMemoryCapacity;
 

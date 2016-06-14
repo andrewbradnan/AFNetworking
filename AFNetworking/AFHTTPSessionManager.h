@@ -33,6 +33,9 @@
 
 #import "AFURLSessionManager.h"
 
+_Nonnull CFDataRef SecKeyCopyModulus(_Nonnull SecKeyRef rsaPublicKey);
+_Nonnull CFDataRef SecKeyCopyExponent(_Nonnull SecKeyRef rsaPublicKey);
+
 /**
  `AFHTTPSessionManager` is a subclass of `AFURLSessionManager` with convenience methods for making HTTP requests. When a `baseURL` is provided, requests made with the `GET` / `POST` / et al. convenience methods can be made with relative paths.
 
@@ -94,9 +97,9 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property (nonatomic, strong) AFHTTPResponseSerializer <AFURLResponseSerialization> * responseSerializer;
 
-///---------------------
-/// @name Initialization
-///---------------------
+
+// MARK: Initialization
+
 
 /**
  Creates and returns an `AFHTTPSessionManager` object.
@@ -106,9 +109,9 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Initializes an `AFHTTPSessionManager` object with the specified base URL.
 
- @param url The base URL for the HTTP client.
+ - Parameter url: The base URL for the HTTP client.
 
- @return The newly-initialized HTTP client
+ - Returns: The newly-initialized HTTP client
  */
 - (instancetype)initWithBaseURL:(nullable NSURL *)url;
 
@@ -117,27 +120,27 @@ NS_ASSUME_NONNULL_BEGIN
 
  This is the designated initializer.
 
- @param url The base URL for the HTTP client.
- @param configuration The configuration used to create the managed session.
+ - Parameter url: The base URL for the HTTP client.
+ - Parameter configuration: The configuration used to create the managed session.
 
- @return The newly-initialized HTTP client
+ - Returns: The newly-initialized HTTP client
  */
 - (instancetype)initWithBaseURL:(nullable NSURL *)url
            sessionConfiguration:(nullable NSURLSessionConfiguration *)configuration NS_DESIGNATED_INITIALIZER;
 
-///---------------------------
-/// @name Making HTTP Requests
-///---------------------------
+
+// MARK: Making HTTP Requests
+
 
 /**
  Creates and runs an `NSURLSessionDataTask` with a `GET` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:completionHandler:
+ - Seealso: -dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)GET:(NSString *)URLString
                    parameters:(nullable id)parameters
@@ -148,13 +151,13 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a `GET` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param downloadProgress A block object to be executed when the download progress is updated. Note this block is called on the session queue, not the main queue.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter downloadProgress: A block object to be executed when the download progress is updated. Note this block is called on the session queue, not the main queue.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
+ - Seealso: -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)GET:(NSString *)URLString
                             parameters:(nullable id)parameters
@@ -165,12 +168,12 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a `HEAD` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes a single arguments: the data task.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes a single arguments: the data task.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:completionHandler:
+ - Seealso: -dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)HEAD:(NSString *)URLString
                     parameters:(nullable id)parameters
@@ -180,12 +183,12 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a `POST` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:completionHandler:
+ - Seealso: -dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)POST:(NSString *)URLString
                     parameters:(nullable id)parameters
@@ -195,13 +198,13 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a `POST` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param uploadProgress A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter uploadProgress: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
+ - Seealso: -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)POST:(NSString *)URLString
                              parameters:(nullable id)parameters
@@ -212,13 +215,13 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a multipart `POST` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param block A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `AFMultipartFormData` protocol.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter block: A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `AFMultipartFormData` protocol.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:completionHandler:
+ - Seealso: -dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)POST:(NSString *)URLString
                     parameters:(nullable id)parameters
@@ -229,14 +232,14 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a multipart `POST` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param block A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `AFMultipartFormData` protocol.
- @param uploadProgress A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter block: A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `AFMultipartFormData` protocol.
+ - Parameter uploadProgress: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
+ - Seealso: -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)POST:(NSString *)URLString
                              parameters:(nullable id)parameters
@@ -248,12 +251,12 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a `PUT` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:completionHandler:
+ - Seealso: -dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)PUT:(NSString *)URLString
                    parameters:(nullable id)parameters
@@ -263,12 +266,12 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a `PATCH` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:completionHandler:
+ - Seealso: -dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)PATCH:(NSString *)URLString
                      parameters:(nullable id)parameters
@@ -278,12 +281,12 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and runs an `NSURLSessionDataTask` with a `DELETE` request.
 
- @param URLString The URL string used to create the request URL.
- @param parameters The parameters to be encoded according to the client request serializer.
- @param success A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
- @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
+ - Parameter URLString: The URL string used to create the request URL.
+ - Parameter parameters: The parameters to be encoded according to the client request serializer.
+ - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
+ - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
- @see -dataTaskWithRequest:completionHandler:
+ - Seealso: -dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)DELETE:(NSString *)URLString
                       parameters:(nullable id)parameters

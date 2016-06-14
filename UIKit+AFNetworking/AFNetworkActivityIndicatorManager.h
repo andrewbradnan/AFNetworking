@@ -75,7 +75,7 @@ NS_EXTENSION_UNAVAILABLE_IOS("Use view controller based solutions where appropri
 /**
  Returns the shared network activity indicator manager object for the system.
 
- @return The systemwide network activity indicator manager.
+ - Returns: The systemwide network activity indicator manager.
  */
 + (instancetype)sharedManager;
 
@@ -92,7 +92,7 @@ NS_EXTENSION_UNAVAILABLE_IOS("Use view controller based solutions where appropri
 /**
  Set the a custom method to be executed when the network activity indicator manager should be hidden/shown. By default, this is null, and the UIApplication Network Activity Indicator will be managed automatically. If this block is set, it is the responsiblity of the caller to manager the network activity indicator going forward.
 
- @param block A block to be executed when the network activity indicator status changes.
+ - Parameter block: A block to be executed when the network activity indicator status changes.
  */
 - (void)setNetworkingActivityActionWithBlock:(nullable void (^)(BOOL networkActivityIndicatorVisible))block;
 

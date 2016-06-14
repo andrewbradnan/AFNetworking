@@ -35,15 +35,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface UIProgressView (AFNetworking)
 
-///------------------------------------
-/// @name Setting Session Task Progress
-///------------------------------------
+
+// MARK: Setting Session Task Progress
+
 
 /**
  Binds the progress to the upload progress of the specified session task.
 
- @param task The session task.
- @param animated `YES` if the change should be animated, `NO` if the change should happen immediately.
+ - Parameter task: The session task.
+ - Parameter animated: `YES` if the change should be animated, `NO` if the change should happen immediately.
  */
 - (void)setProgressWithUploadProgressOfTask:(NSURLSessionUploadTask *)task
                                    animated:(BOOL)animated;
@@ -51,8 +51,8 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Binds the progress to the download progress of the specified session task.
 
- @param task The session task.
- @param animated `YES` if the change should be animated, `NO` if the change should happen immediately.
+ - Parameter task: The session task.
+ - Parameter animated: `YES` if the change should be animated, `NO` if the change should happen immediately.
  */
 - (void)setProgressWithDownloadProgressOfTask:(NSURLSessionDownloadTask *)task
                                      animated:(BOOL)animated;

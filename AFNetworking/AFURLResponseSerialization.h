@@ -34,11 +34,11 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  The response object decoded from the data associated with a specified response.
 
- @param response The response to be processed.
- @param data The response data to be decoded.
- @param error The error that occurred while attempting to decode the response data.
+ - Parameter response: The response to be processed.
+ - Parameter data: The response data to be decoded.
+ - Parameter error: The error that occurred while attempting to decode the response data.
 
- @return The object decoded from the specified response data.
+ - Returns: The object decoded from the specified response data.
  */
 - (nullable id)responseObjectForResponse:(nullable NSURLResponse *)response
                            data:(nullable NSData *)data
@@ -67,9 +67,9 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (instancetype)serializer;
 
-///-----------------------------------------
-/// @name Configuring Response Serialization
-///-----------------------------------------
+
+// MARK: Configuring Response Serialization
+
 
 /**
  The acceptable HTTP status codes for responses. When non-`nil`, responses with status codes not contained by the set will result in an error during validation.
@@ -88,11 +88,11 @@ NS_ASSUME_NONNULL_BEGIN
 
  In its base implementation, this method checks for an acceptable status code and content type. Subclasses may wish to add other domain-specific checks.
 
- @param response The response to be validated.
- @param data The data associated with the response.
- @param error The error that occurred while attempting to validate the response.
+ - Parameter response: The response to be validated.
+ - Parameter data: The data associated with the response.
+ - Parameter error: The error that occurred while attempting to validate the response.
 
- @return `YES` if the response is valid, otherwise `NO`.
+ - Returns: `YES` if the response is valid, otherwise `NO`.
  */
 - (BOOL)validateResponse:(nullable NSHTTPURLResponse *)response
                     data:(nullable NSData *)data
@@ -129,7 +129,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and returns a JSON serializer with specified reading and writing options.
 
- @param readingOptions The specified JSON reading options.
+ - Parameter readingOptions: The specified JSON reading options.
  */
 + (instancetype)serializerWithReadingOptions:(NSJSONReadingOptions)readingOptions;
 
@@ -173,7 +173,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and returns an XML document serializer with the specified options.
 
- @param mask The XML document options.
+ - Parameter mask: The XML document options.
  */
 + (instancetype)serializerWithXMLDocumentOptions:(NSUInteger)mask;
 
@@ -207,8 +207,8 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and returns a property list serializer with a specified format, read options, and write options.
 
- @param format The property list format.
- @param readOptions The property list reading options.
+ - Parameter format: The property list format.
+ - Parameter readOptions: The property list reading options.
  */
 + (instancetype)serializerWithFormat:(NSPropertyListFormat)format
                          readOptions:(NSPropertyListReadOptions)readOptions;
@@ -270,9 +270,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-///----------------
-/// @name Constants
-///----------------
+
+// MARK: Constants
+
 
 /**
  ## Error Domains

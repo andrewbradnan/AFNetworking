@@ -16,16 +16,16 @@ enum SFSSLPinningMode {
 }
 
 /**
- `AFSecurityPolicy` evaluates server trust against pinned X.509 certificates and public keys over secure connections.
+ `SFSecurityPolicy` evaluates server trust against pinned X.509 certificates and public keys over secure connections.
  
  Adding pinned SSL certificates to your app helps prevent man-in-the-middle attacks and other vulnerabilities. Applications dealing with sensitive customer data or financial information are strongly encouraged to route all communication over an HTTPS connection with SSL pinning configured and enabled.
  */
 
 
-class SFSecurityPolicy : NSObject, NSSecureCoding, NSCopying {
-    
+class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
+{
     /**
-     The criteria by which server trust should be evaluated against the pinned SSL certificates. Defaults to `AFSSLPinningModeNone`.
+     The criteria by which server trust should be evaluated against the pinned SSL certificates. Defaults to `.None`.
      */
     let pinningMode: SFSSLPinningMode = .None
     
@@ -36,32 +36,26 @@ class SFSecurityPolicy : NSObject, NSSecureCoding, NSCopying {
      
      Note that if pinning is enabled, `evaluateServerTrust:forDomain:` will return true if any pinned certificate matches.
      */
-    private var _pinnedCertificates: Set<NSData>?
-    var pinnedCertificates: Set<NSData>? {
+    private var _pinnedCertificates = Set<NSData>()
+    var pinnedCertificates: Set<NSData> {
         get { return _pinnedCertificates }
         set(value) {
             _pinnedCertificates = value
         
-            self.pinnedPublicKeys = self._pinnedCertificates?.map { AFPublicKeyForCertificate($0) }
+            self.pinnedPublicKeys = Set<PublicKey>(self._pinnedCertificates.flatMap { $0.publicKey } )
         }
     }
     
-    private var pinnedPublicKeys = Set<SecKey>()
+    private var pinnedPublicKeys = Set<PublicKey>()
     
-    /**
-     Whether or not to trust servers with an invalid or expired SSL certificates. Defaults to `false`.
-     */
-    var allowInvalidCertificates: Bool
+    /// Whether or not to trust servers with an invalid or expired SSL certificates. Defaults to `false`.
+    var allowInvalidCertificates: Bool = false
     
-    /**
-     Whether or not to validate the domain name in the certificate's CN field. Defaults to `true`.
-     */
+    /// Whether or not to validate the domain name in the certificate's CN field. Defaults to `true`.
     var validatesDomainName: Bool = true
     
-    
-    // Mark: Getting Certificates from the Bundle
-    
-    
+    // MARK: Getting Certificates from the Bundle
+
     /**
      Returns any certificates included in the bundle. If you are using AFNetworking as an embedded framework, you must use this method to find the certificates you have included in your app bundle, and use them when creating your security policy by calling `policyWithPinningMode:withPinnedCertificates`.
      
@@ -82,7 +76,7 @@ class SFSecurityPolicy : NSObject, NSSecureCoding, NSCopying {
     }
 
     
-    // Mark: Getting Specific Security Policies
+    // MARK: Getting Specific Security Policies
     
     
     /**
@@ -93,21 +87,8 @@ class SFSecurityPolicy : NSObject, NSSecureCoding, NSCopying {
     static let defaultPolicy = SFSecurityPolicy()
     
     
-    // Mark: Initialization
-    
-    
-    /**
-     Creates and returns a security policy with the specified pinning mode.
-     
-     - Parameter pinningMode: The SSL pinning mode.
-     
-     - Returns: A new security policy.
-     */
-//    init(pinningMode: AFSSLPinningMode) {
-//        self.init(pinningMode:pinningMode, withPinnedCertificates:[self defaultPinnedCertificates]];
-//        
-//    }
-    
+    // MARK: Initialization
+
     /**
      Creates and returns a security policy with the specified pinning mode.
      
@@ -116,24 +97,16 @@ class SFSecurityPolicy : NSObject, NSSecureCoding, NSCopying {
      
      - Returns: A new security policy.
      */
-    init(pinningMode: SFSSLPinningMode, withPinnedCertificates: Set<NSData>? = SFSecurityPolicy.defaultPinnedCertificates) {
-        self.SSLPinning = pinningMode
-        self.pinnedCertificates = withPinnedCertificates
+    init(pinningMode: SFSSLPinningMode = .None, withPinnedCertificates: Set<NSData>? = SFSecurityPolicy.defaultPinnedCertificates) {
+        self.pinningMode = pinningMode
+        self.pinnedCertificates = withPinnedCertificates ?? []
     }
     
-    required init?(coder aDecoder: NSCoder) {
-        self.SSLPinningMode = aDecoder.decodeObjectOfClass(NSNumber.self, forKey:#selector(SSLPinningMode))
-        self.allowInvalidCertificates = aDecoder.decodeBoolForKey(#selector(allowInvalidCertificates))
-        self.validatesDomainName = aDecoder.decodeBoolForKey(#selector(validatesDomainName))
-        self.pinnedCertificates = aDecoder.decodeObjectOfClass(NSArray.self, forKey:#selector(pinnedCertificates))
-
+    // MARK: Evaluating Server Trust
+    
+    func secPolicy(domain: String?) -> SecPolicy {
+        return self.validatesDomainName ? SecPolicyCreateSSL(true, domain) : SecPolicyCreateBasicX509()
     }
-    
-    static var supportsSecureCoding: Bool { get { return true }}
-
-    
-    // Mark: Evaluating Server Trust
-    
     
     /**
      Whether or not the specified server trust should be accepted, based on the security policy.
@@ -147,28 +120,28 @@ class SFSecurityPolicy : NSObject, NSSecureCoding, NSCopying {
      */
     func evaluateServerTrust(serverTrust: SecTrustRef, forDomain domain: String?) -> Bool
     {
-        if domain && self.allowInvalidCertificates && self.validatesDomainName && (self.SSLPinningMode == .None || (self.pinnedCertificates.count == 0)) {
-            /* https://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/NetworkingTopics/Articles/OverridingSSLChainValidationCorrectly.html
-             According to the docs, you should only trust your provided certs for evaluation.  Pinned certificates are added to the trust. Without pinned certificates, there is nothing to evaluate against.
-         
-             From Apple Docs:
-                "Do not implicitly trust self-signed certificates as anchors (kSecTrustOptionImplicitAnchors).  Instead, add your own (self-signed) CA certificate to the list of trusted anchors."
-            */
-            NSLog("In order to validate a domain name for self signed certificates, you MUST use pinning.")
+        if let d = domain {
+            if self.allowInvalidCertificates && self.validatesDomainName && (self.pinningMode == .None || (self.pinnedCertificates.count == 0)) {
+                /* https://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/NetworkingTopics/Articles/OverridingSSLChainValidationCorrectly.html
+                 According to the docs, you should only trust your provided certs for evaluation.  Pinned certificates are added to the trust. Without pinned certificates, there is nothing to evaluate against.
+             
+                 From Apple Docs:
+                    "Do not implicitly trust self-signed certificates as anchors (kSecTrustOptionImplicitAnchors).  Instead, add your own (self-signed) CA certificate to the list of trusted anchors."
+                */
+                NSLog("In order to validate a domain name for self signed certificates, you MUST use pinning.")
+                return false
+            }
+        }
+        
+        SecTrustSetPolicies(serverTrust, secPolicy(domain))
+        
+        if (self.pinningMode == .None) {
+            return self.allowInvalidCertificates || serverTrust.isValid
+        } else if (!serverTrust.isValid && !self.allowInvalidCertificates) {
             return false
         }
         
-        let p = self.validatesDomainName ? SecPolicyCreateSSL(true, domain) : SecPolicyCreateBasicX509()
-        
-        SecTrustSetPolicies(serverTrust, p)
-        
-        if (self.SSLPinningMode == .None) {
-            return self.allowInvalidCertificates || AFServerTrustIsValid(serverTrust)
-        } else if (!AFServerTrustIsValid(serverTrust) && !self.allowInvalidCertificates) {
-            return false
-        }
-        
-        switch (self.SSLPinningMode) {
+        switch (self.pinningMode) {
         
         case .Certificate:
 //            NSMutableArray *pinnedCertificates = [NSMutableArray array];
@@ -176,108 +149,36 @@ class SFSecurityPolicy : NSObject, NSSecureCoding, NSCopying {
 //                [pinnedCertificates addObject:(__bridge_transfer id)SecCertificateCreateWithData(NULL, (__bridge CFDataRef)certificateData)];
 //            }
             
-            if self.pinnedCertificates != nil {
-                SecTrustSetAnchorCertificates(serverTrust, Array<NSData>(self.pinnedCertificates!))
-            }
+            SecTrustSetAnchorCertificates(serverTrust, Array<NSData>(self.pinnedCertificates))
             
-            if !SFServerTrustIsValid(serverTrust) {
+            if !serverTrust.isValid {
                 return false
             }
             
             // obtain the chain after being validated, which *should* contain the pinned certificate in the last position (if it's the Root CA)
-            let serverCertificates = AFCertificateTrustChainForServerTrust(serverTrust)
+            if let root = serverTrust.trustChain.last {
+                return self.pinnedCertificates.contains(root)
+            }
+            else {
+                return false
+            }
             
-            return self.pinnedCertificates.contains(serverCertificates.last)
-        
         case .PublicKey:
-            var trustedPublicKeyCount = 0
-            let publicKeys = SFPublicKeyTrustChainForServerTrust(serverTrust)
+            let publicKeys = serverTrust.publicKeyTrustChain
             
             return !self.pinnedPublicKeys.isDisjointWith(publicKeys)
         //case .None:
+            // fallthrough
         default:
             return false
     }
-        
-    
-    // Mark - NSCopying
-   
-    func copyWithZone(zone: NSZone) -> AnyObject {
-        let securityPolicy = SFSecurityPolicy(pinningMode: self.pinningMode, withPinnedCertificates: self.pinnedCertificates)
-        securityPolicy.allowInvalidCertificates = self.allowInvalidCertificates
-        securityPolicy.validatesDomainName = self.validatesDomainName
-        
-        return securityPolicy
-    }
 }
 
-
-
-// Mark: Constants
-
-
-/**
- ## SSL Pinning Modes
- 
- The following constants are provided by `AFSSLPinningMode` as possible SSL pinning modes.
- 
- enum {
- AFSSLPinningModeNone,
- AFSSLPinningModePublicKey,
- AFSSLPinningModeCertificate,
- }
- 
- `AFSSLPinningModeNone`
- Do not used pinned certificates to validate servers.
- 
- `AFSSLPinningModePublicKey`
- Validate host certificates against public keys of pinned certificates.
- 
- `AFSSLPinningModeCertificate`
- Validate host certificates against pinned certificates.
- */
-
 }
-
-/*
-    #if !TARGET_OS_IOS && !TARGET_OS_WATCH && !TARGET_OS_TV
-    func SFSecKeyGetData(key: SecKeyRef) {
-        SecItemExport(
-        CFDataRef data = NULL;
-    
-    __Require_noErr_Quiet(SecItemExport(key, kSecFormatUnknown, kSecItemPemArmour, NULL, &data), _out);
-    
-    return (__bridge_transfer NSData *)data;
-    
-    _out:
-    if (data) {
-    CFRelease(data);
-    }
-    
-    return nil;
-    }
-    #endif
-  */
-    
-    extension SecKeyRef : Equatable {
-        
-    }
-
-public func ==(lhs: SecKey, rhs: SecKey) -> Bool {
-    return lhs === rhs
-}
-
-//    func SFSecKeyIsEqualToKey(SecKeyRef key1, SecKeyRef key2) {
-//    #if TARGET_OS_IOS || TARGET_OS_WATCH || TARGET_OS_TV
-//    return [(__bridge id)key1 isEqual:(__bridge id)key2];
-//    #else
-//    return [AFSecKeyGetData(key1) isEqual:AFSecKeyGetData(key2)];
-//    #endif
-//    }
 
 extension NSData {
     /// - seealso: AFPublicKeyForCertificate
-    public var publicKey : SecKey? {
+    public var publicKey : PublicKey? {
         get {
             guard let allowedCertificate = SecCertificateCreateWithData(nil, self) else { return nil }
             
@@ -288,11 +189,26 @@ extension NSData {
                 NSLog("SecTrustCreateWithCertificates failed \(os)")
                 return nil
             }
-                
-            return SecTrustCopyPublicKey(trust)
+            guard let pk = SecTrustCopyPublicKey(trust) else { return nil }
+            
+            return PublicKey(hashValue: self.hashValue, key: pk)
         }
     }
 }
+
+/**
+ This is a hashable SecKey so we can add to a Set<>
+ */
+public struct PublicKey : Hashable {
+    public let hashValue: Int
+    public let key: SecKeyRef
+}
+
+public func ==(lhs: PublicKey, rhs: PublicKey) -> Bool {
+    return lhs.hashValue == rhs.hashValue
+}
+
+// Mark - SecTrust
 
 extension SecTrust {
     /// - seealso: AFServerTrustIsValid
@@ -337,9 +253,12 @@ extension SecTrust {
     }
     
     /// - seealso: AFPublicKeyTrustChainForServerTrust
-    public var publicKeyTrustChain: [SecKeyRef] {
+    public var publicKeyTrustChain: [PublicKey] {
         get {
-            return self.newTrustChain.flatMap { SecTrustCopyPublicKey($0) }
+            let hashes = self.trustChain.map { $0.hashValue }
+            let hashKeys = zip(hashes, self.newTrustChain.flatMap { SecTrustCopyPublicKey($0) })
+            
+            return hashKeys.map { PublicKey(hashValue: $0.0, key: $0.1) }
         }
     }
 }

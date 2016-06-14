@@ -35,14 +35,14 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface UIRefreshControl (AFNetworking)
 
-///-----------------------------------
-/// @name Refreshing for Session Tasks
-///-----------------------------------
+
+// MARK: Refreshing for Session Tasks
+
 
 /**
  Binds the refreshing state to the state of the specified task.
  
- @param task The task. If `nil`, automatic updating from any previously specified operation will be disabled.
+ - Parameter task: The task. If `nil`, automatic updating from any previously specified operation will be disabled.
  */
 - (void)setRefreshingWithStateOfTask:(NSURLSessionTask *)task;
 

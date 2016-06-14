@@ -32,14 +32,14 @@
  */
 @interface UIActivityIndicatorView (AFNetworking)
 
-///----------------------------------
-/// @name Animating for Session Tasks
-///----------------------------------
+
+// MARK: Animating for Session Tasks
+
 
 /**
  Binds the animating state to the state of the specified task.
 
- @param task The task. If `nil`, automatic updating from any previously specified operation will be disabled.
+ - Parameter task: The task. If `nil`, automatic updating from any previously specified operation will be disabled.
  */
 - (void)setAnimatingWithStateOfTask:(nullable NSURLSessionTask *)task;
 

@@ -64,9 +64,9 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property (readonly, nonatomic, assign, getter = isReachableViaWiFi) BOOL reachableViaWiFi;
 
-///---------------------
-/// @name Initialization
-///---------------------
+
+// MARK: Initialization
+
 
 /**
  Returns the shared network reachability manager.
@@ -76,40 +76,40 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Creates and returns a network reachability manager with the default socket address.
  
- @return An initialized network reachability manager, actively monitoring the default socket address.
+ - Returns: An initialized network reachability manager, actively monitoring the default socket address.
  */
 + (instancetype)manager;
 
 /**
  Creates and returns a network reachability manager for the specified domain.
 
- @param domain The domain used to evaluate network reachability.
+ - Parameter domain: The domain used to evaluate network reachability.
 
- @return An initialized network reachability manager, actively monitoring the specified domain.
+ - Returns: An initialized network reachability manager, actively monitoring the specified domain.
  */
 + (instancetype)managerForDomain:(NSString *)domain;
 
 /**
  Creates and returns a network reachability manager for the socket address.
 
- @param address The socket address (`sockaddr_in6`) used to evaluate network reachability.
+ - Parameter address: The socket address (`sockaddr_in6`) used to evaluate network reachability.
 
- @return An initialized network reachability manager, actively monitoring the specified socket address.
+ - Returns: An initialized network reachability manager, actively monitoring the specified socket address.
  */
 + (instancetype)managerForAddress:(const void *)address;
 
 /**
  Initializes an instance of a network reachability manager from the specified reachability object.
 
- @param reachability The reachability object to monitor.
+ - Parameter reachability: The reachability object to monitor.
 
- @return An initialized network reachability manager, actively monitoring the specified reachability.
+ - Returns: An initialized network reachability manager, actively monitoring the specified reachability.
  */
 - (instancetype)initWithReachability:(SCNetworkReachabilityRef)reachability NS_DESIGNATED_INITIALIZER;
 
-///--------------------------------------------------
-/// @name Starting & Stopping Reachability Monitoring
-///--------------------------------------------------
+
+// MARK: Starting & Stopping Reachability Monitoring
+
 
 /**
  Starts monitoring for changes in network reachability status.
@@ -121,31 +121,31 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)stopMonitoring;
 
-///-------------------------------------------------
-/// @name Getting Localized Reachability Description
-///-------------------------------------------------
+
+// MARK: Getting Localized Reachability Description
+
 
 /**
  Returns a localized string representation of the current network reachability status.
  */
 - (NSString *)localizedNetworkReachabilityStatusString;
 
-///---------------------------------------------------
-/// @name Setting Network Reachability Change Callback
-///---------------------------------------------------
+
+// MARK: Setting Network Reachability Change Callback
+
 
 /**
  Sets a callback to be executed when the network availability of the `baseURL` host changes.
 
- @param block A block object to be executed when the network availability of the `baseURL` host changes.. This block has no return value and takes a single argument which represents the various reachability states from the device to the `baseURL`.
+ - Parameter block: A block object to be executed when the network availability of the `baseURL` host changes.. This block has no return value and takes a single argument which represents the various reachability states from the device to the `baseURL`.
  */
 - (void)setReachabilityStatusChangeBlock:(nullable void (^)(AFNetworkReachabilityStatus status))block;
 
 @end
 
-///----------------
-/// @name Constants
-///----------------
+
+// MARK: Constants
+
 
 /**
  ## Network Reachability
@@ -180,9 +180,9 @@ NS_ASSUME_NONNULL_BEGIN
  The corresponding value is an `NSNumber` object representing the `AFNetworkReachabilityStatus` value for the current reachability status.
  */
 
-///--------------------
-/// @name Notifications
-///--------------------
+
+// MARK: Notifications
+
 
 /**
  Posted when network reachability changes.
@@ -193,9 +193,9 @@ NS_ASSUME_NONNULL_BEGIN
 FOUNDATION_EXPORT NSString * const AFNetworkingReachabilityDidChangeNotification;
 FOUNDATION_EXPORT NSString * const AFNetworkingReachabilityNotificationStatusItem;
 
-///--------------------
-/// @name Functions
-///--------------------
+
+// MARK: Functions
+
 
 /**
  Returns a localized string representation of an `AFNetworkReachabilityStatus` value.

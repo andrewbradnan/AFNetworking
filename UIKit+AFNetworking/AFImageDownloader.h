@@ -77,26 +77,26 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
 /**
  Creates a default `NSURLCache` with common usage parameter values.
 
- @returns The default `NSURLCache` instance.
+ - Returns:s The default `NSURLCache` instance.
  */
 + (NSURLCache *)defaultURLCache;
 
 /**
  Default initializer
 
- @return An instance of `AFImageDownloader` initialized with default values.
+ - Returns: An instance of `AFImageDownloader` initialized with default values.
  */
 - (instancetype)init;
 
 /**
  Initializes the `AFImageDownloader` instance with the given session manager, download prioritization, maximum active download count and image cache.
 
- @param sessionManager The session manager to use to download images.
- @param downloadPrioritization The download prioritization of the download queue.
- @param maximumActiveDownloads  The maximum number of active downloads allowed at any given time. Recommend `4`.
- @param imageCache The image cache used to store all downloaded images in.
+ - Parameter sessionManager: The session manager to use to download images.
+ - Parameter downloadPrioritization: The download prioritization of the download queue.
+ - Parameter maximumActiveDownloads:  The maximum number of active downloads allowed at any given time. Recommend `4`.
+ - Parameter imageCache: The image cache used to store all downloaded images in.
 
- @return The new `AFImageDownloader` instance.
+ - Returns: The new `AFImageDownloader` instance.
  */
 - (instancetype)initWithSessionManager:(AFHTTPSessionManager *)sessionManager
                 downloadPrioritization:(AFImageDownloadPrioritization)downloadPrioritization
@@ -110,11 +110,11 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
  appended to the already existing task. Once the task completes, all success or failure blocks attached to the
  task are executed in the order they were added.
 
- @param request The URL request.
- @param success A block to be executed when the image data task finishes successfully. This block has no return value and takes three arguments: the request sent from the client, the response received from the server, and the image created from the response data of request. If the image was returned from cache, the response parameter will be `nil`.
- @param failure A block object to be executed when the image data task finishes unsuccessfully, or that finishes successfully. This block has no return value and takes three arguments: the request sent from the client, the response received from the server, and the error object describing the network or parsing error that occurred.
+ - Parameter request: The URL request.
+ - Parameter success: A block to be executed when the image data task finishes successfully. This block has no return value and takes three arguments: the request sent from the client, the response received from the server, and the image created from the response data of request. If the image was returned from cache, the response parameter will be `nil`.
+ - Parameter failure: A block object to be executed when the image data task finishes unsuccessfully, or that finishes successfully. This block has no return value and takes three arguments: the request sent from the client, the response received from the server, and the error object describing the network or parsing error that occurred.
 
- @return The image download receipt for the data task if available. `nil` if the image is stored in the cache.
+ - Returns: The image download receipt for the data task if available. `nil` if the image is stored in the cache.
  cache and the URL request cache policy allows the cache to be used.
  */
 - (nullable AFImageDownloadReceipt *)downloadImageForURLRequest:(NSURLRequest *)request
@@ -128,12 +128,12 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
  appended to the already existing task. Once the task completes, all success or failure blocks attached to the
  task are executed in the order they were added.
 
- @param request The URL request.
- @param receiptID The identifier to use for the download receipt that will be created for this request. This must be a unique identifier that does not represent any other request.
- @param success A block to be executed when the image data task finishes successfully. This block has no return value and takes three arguments: the request sent from the client, the response received from the server, and the image created from the response data of request. If the image was returned from cache, the response parameter will be `nil`.
- @param failure A block object to be executed when the image data task finishes unsuccessfully, or that finishes successfully. This block has no return value and takes three arguments: the request sent from the client, the response received from the server, and the error object describing the network or parsing error that occurred.
+ - Parameter request: The URL request.
+ - Parameter receiptID: The identifier to use for the download receipt that will be created for this request. This must be a unique identifier that does not represent any other request.
+ - Parameter success: A block to be executed when the image data task finishes successfully. This block has no return value and takes three arguments: the request sent from the client, the response received from the server, and the image created from the response data of request. If the image was returned from cache, the response parameter will be `nil`.
+ - Parameter failure: A block object to be executed when the image data task finishes unsuccessfully, or that finishes successfully. This block has no return value and takes three arguments: the request sent from the client, the response received from the server, and the error object describing the network or parsing error that occurred.
 
- @return The image download receipt for the data task if available. `nil` if the image is stored in the cache.
+ - Returns: The image download receipt for the data task if available. `nil` if the image is stored in the cache.
  cache and the URL request cache policy allows the cache to be used.
  */
 - (nullable AFImageDownloadReceipt *)downloadImageForURLRequest:(NSURLRequest *)request
@@ -146,7 +146,7 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
 
  If the data task is pending in the queue, it will be cancelled if no other success and failure blocks are registered with the data task. If the data task is currently executing or is already completed, the success and failure blocks are removed and will not be called when the task finishes.
 
- @param imageDownloadReceipt The image download receipt to cancel.
+ - Parameter imageDownloadReceipt: The image download receipt to cancel.
  */
 - (void)cancelTaskForImageDownloadReceipt:(AFImageDownloadReceipt *)imageDownloadReceipt;
 
