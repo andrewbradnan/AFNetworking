@@ -72,7 +72,7 @@ class SFNetworkingTests: XCTestCase {
         
         return f
     }
-    
+    /*
     func testThatOperationInvokesFailureCompletionBlockWithErrorOnFailure() {
         let expectation = self.expectationWithDescription("Request should 404")
         
@@ -97,66 +97,56 @@ class SFNetworkingTests: XCTestCase {
         }
     }
     
-    /*
-    func testThatRedirectBlockIsCalledWhen302IsEncountered {
-        __block BOOL success;
-        __block NSError *blockError = nil;
+    func testThatRedirectBlockIsCalledWhen302IsEncountered() {
+        let expectation = self.expectationWithDescription("Request should succeed")
+        
+        if let redir = NSURL(string:"/redirect/1", relativeToURL:self.baseURL) {
+            let redirectRequest = NSURLRequest(URL:redir)
+
+            self.manager.taskWillPerformHTTPRedirection = { (session: NSURLSession, t: NSURLSessionTask, response: NSURLResponse, request: NSURLRequest)->NSURLRequest? in
+                return request
+            }
+            
+            let f = self.getFutureForRequest(redirectRequest)
+            
+            f.onSuccess(block: { expectation.fulfill() })
+            
+            self.waitForExpectationsWithTimeout(10.0, handler:nil)
+            
+            XCTAssertTrue(f.isCompleted)
+        }
+    }
+*/
+    
+    func testDownloadFileCompletionSpecifiesURLInCompletionWithManagerDidFinishBlock() {
+        var managerDownloadFinishedBlockExecuted = false
+        var downloadFilePath: NSURL?
         
         let expectation = self.expectationWithDescription("Request should succeed")
         
-        NSURLRequest *redirectRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/redirect/1" relativeToURL:self.baseURL]];
-        NSURLSessionDataTask *redirectTask = [self.manager dataTaskWithRequest:redirectRequest uploadProgress:nil downloadProgress:nil
-        completionHandler:^(NSURLResponse *response, id responseObject, NSError *error) {
-        blockError = error;
-        [expectation fulfill];
-        }];
+        self.manager.downloadTaskDidFinishDownloading = { (NSURLSession, NSURLSessionDownloadTask, NSURL) -> NSURL? in
+            managerDownloadFinishedBlockExecuted = true
+            let dirURL = NSFileManager.defaultManager().URLsForDirectory(.LibraryDirectory, inDomains:.UserDomainMask).last
         
-        [self.manager setTaskWillPerformHTTPRedirectionBlock:^NSURLRequest *(NSURLSession *session, NSURLSessionTask *task, NSURLResponse *response, NSURLRequest *request) {
-        if (response) {
-        success = YES;
+            
+            downloadFilePath = dirURL?.URLByAppendingPathComponent("t1.file")
+            return downloadFilePath
         }
         
-        return request;
-        }];
+        let f = self.manager.downloadTaskWithRequest(NSURLRequest(URL:self.baseURL!))
+
+        f.onSuccess{_ in 
+            expectation.fulfill()
+        }
         
-        [redirectTask resume];
+        self.waitForExpectationsWithTimeout(10.0, handler:nil)
         
-        [self waitForExpectationsWithTimeout:10.0 handler:nil];
-        
-        XCTAssertTrue(redirectTask.state == NSURLSessionTaskStateCompleted);
-        XCTAssertNil(blockError);
-        XCTAssertTrue(success);
+        XCTAssertTrue(f.isCompleted)
+        XCTAssertTrue(managerDownloadFinishedBlockExecuted)
+        XCTAssertNotNil(downloadFilePath)
     }
     
-    func testDownloadFileCompletionSpecifiesURLInCompletionWithManagerDidFinishBlock {
-        __block BOOL managerDownloadFinishedBlockExecuted = NO;
-        __block BOOL completionBlockExecuted = NO;
-        __block NSURL *downloadFilePath = nil;
-        let expectation = self.expectationWithDescription("Request should succeed")
-        
-        [self.manager setDownloadTaskDidFinishDownloadingBlock:^NSURL *(NSURLSession *session, NSURLSessionDownloadTask *downloadTask, NSURL *location) {
-        managerDownloadFinishedBlockExecuted = YES;
-        NSURL *dirURL  = [[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask] lastObject];
-        return [dirURL URLByAppendingPathComponent:@"t1.file"];
-        }];
-        
-        NSURLSessionDownloadTask *downloadTask;
-        downloadTask = [self.manager
-        downloadTaskWithRequest:[NSURLRequest requestWithURL:self.baseURL]
-        progress:nil
-        destination:nil
-        completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
-        downloadFilePath = filePath;
-        completionBlockExecuted = YES;
-        [expectation fulfill];
-        }];
-        [downloadTask resume];
-        [self waitForExpectationsWithTimeout:10.0 handler:nil];
-        XCTAssertTrue(completionBlockExecuted);
-        XCTAssertTrue(managerDownloadFinishedBlockExecuted);
-        XCTAssertNotNil(downloadFilePath);
-    }
-    
+    /*
     func testDownloadFileCompletionSpecifiesURLInCompletionBlock {
         __block BOOL destinationBlockExecuted = NO;
         __block BOOL completionBlockExecuted = NO;

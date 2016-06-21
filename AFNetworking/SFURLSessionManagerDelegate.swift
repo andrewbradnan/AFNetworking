@@ -12,6 +12,8 @@ import FutureKit
 
 class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate {
     var promise = Promise<T>()
+    public var filePromise: Promise<NSURL>?
+    
     weak var manager: SFURLSessionManager<T>?
 
     var mutableData: NSMutableData? = NSMutableData()
@@ -292,7 +294,6 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
      Sent when a download task that has completed a download.  The delegate should copy or move the file at the given location to a new location as it will be removed when the delegate message returns. URLSession:task:didCompleteWithError: will still be called.
      */
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL) {
-        self.downloadFileURL = nil
         
         if (self.downloadTaskDidFinishDownloading != nil) {
             self.downloadFileURL = self.downloadTaskDidFinishDownloading!(session, downloadTask, location)
@@ -301,9 +302,13 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
                 try NSFileManager.defaultManager().moveItemAtURL(location, toURL:self.downloadFileURL!)
             }
             catch let e {
-                self.promise.completeWithFail(e)
+                self.filePromise!.completeWithFail(e)
+                return
             }
         }
+        guard let url = self.downloadFileURL else { self.filePromise!.completeWithFail(SFError.NoLocation); return }
+        
+        self.filePromise!.completeWithSuccess(url)
     }
     
     /**

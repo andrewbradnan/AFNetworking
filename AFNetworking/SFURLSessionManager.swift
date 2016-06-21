@@ -172,112 +172,118 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     }
     var lock: NSLock
     
-    typealias RedirectionBlock = (NSURLSession, NSURLSessionTask, NSURLResponse, NSURLRequest)->NSURLRequest?
-    typealias TaskChallengeBlock = (NSURLSession, NSURLSessionTask, NSURLAuthenticationChallenge, inout NSURLCredential?)->NSURLSessionAuthChallengeDisposition?
-    typealias TaskNeedNewBodyStreamBlock = (NSURLSession, NSURLSessionTask)->NSInputStream?
-    typealias TaskDidSendBodyDataBlock = (NSURLSession, NSURLSessionTask, Int64, Int64, Int64)->Void
-    typealias DownloadTaskDidWriteDataBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64, Int64)->Void
-    typealias TaskDidCompleteBlock = (NSURLSession, NSURLSessionTask) throws ->Void
-    typealias TaskDidReceiveResponseBlock = (NSURLSession, NSURLSessionDataTask, NSURLResponse)->NSURLSessionResponseDisposition
-    typealias DataTaskDidBecomeDownloadTaskBlock = (NSURLSession, NSURLSessionDataTask, NSURLSessionDownloadTask)->Void
-    typealias DataTaskDidReceiveDataBlock = (NSURLSession, NSURLSessionDataTask, NSData)->Void
-    typealias DataTaskWillCacheResponseBlock = (NSURLSession, NSURLSessionDataTask, NSCachedURLResponse)->NSCachedURLResponse
-    typealias DownloadTaskDidFinishDownloadingBlock = (NSURLSession, NSURLSessionDownloadTask, NSURL)->NSURL?
-    typealias DownloadTaskDidResumeBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64)->Void
-    typealias BecomeInvalidBlock = (NSURLSession) throws -> Void
-    typealias ChallengeBlock = (NSURLSession, NSURLAuthenticationChallenge, NSURLCredential?) -> NSURLSessionAuthChallengeDisposition
-    typealias NSURLSessionBlock = NSURLSession->Void
+    public typealias BecomeInvalidBlock = (NSURLSession) throws -> Void
+    public typealias ChallengeBlock = (NSURLSession, NSURLAuthenticationChallenge, NSURLCredential?) -> NSURLSessionAuthChallengeDisposition
+    public typealias NSURLSessionBlock = NSURLSession->Void
+    public typealias RedirectionBlock = (NSURLSession, NSURLSessionTask, NSURLResponse, NSURLRequest)->NSURLRequest?
+    public typealias TaskChallengeBlock = (NSURLSession, NSURLSessionTask, NSURLAuthenticationChallenge, inout NSURLCredential?)->NSURLSessionAuthChallengeDisposition?
+    public typealias TaskNeedNewBodyStreamBlock = (NSURLSession, NSURLSessionTask)->NSInputStream?
+    public typealias TaskDidSendBodyDataBlock = (NSURLSession, NSURLSessionTask, Int64, Int64, Int64)->Void
+    public typealias TaskDidCompleteBlock = (NSURLSession, NSURLSessionTask) throws ->Void
+    public typealias TaskDidReceiveResponseBlock = (NSURLSession, NSURLSessionDataTask, NSURLResponse)->NSURLSessionResponseDisposition
+    public typealias DataTaskDidBecomeDownloadTaskBlock = (NSURLSession, NSURLSessionDataTask, NSURLSessionDownloadTask)->Void
+    public typealias DataTaskDidReceiveDataBlock = (NSURLSession, NSURLSessionDataTask, NSData)->Void
+    public typealias DataTaskWillCacheResponseBlock = (NSURLSession, NSURLSessionDataTask, NSCachedURLResponse)->NSCachedURLResponse
+    public typealias DownloadTaskDidFinishDownloadingBlock = (NSURLSession, NSURLSessionDownloadTask, NSURL)->NSURL?
+    public typealias DownloadTaskDidWriteDataBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64, Int64)->Void
+    public typealias DownloadTaskDidResumeBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64)->Void
     /**
      Sets a block to be executed when a connection level authentication challenge has occurred, as handled by the `NSURLSessionDelegate` method `URLSession:didReceiveChallenge:completionHandler:`.
      
      - Parameter block: A block object to be executed when a connection level authentication challenge has occurred. The block returns the disposition of the authentication challenge, and takes three arguments: the session, the authentication challenge, and a pointer to the credential that should be used to resolve the challenge.
      */
-    var sessionDidBecomeInvalid: BecomeInvalidBlock?
+    public var sessionDidBecomeInvalid: BecomeInvalidBlock?
     /**
      Sets a block to be executed when a connection level authentication challenge has occurred, as handled by the `NSURLSessionDelegate` method `URLSession:didReceiveChallenge:completionHandler:`.
      
      - Parameter block: A block object to be executed when a connection level authentication challenge has occurred. The block returns the disposition of the authentication challenge, and takes three arguments: the session, the authentication challenge, and a pointer to the credential that should be used to resolve the challenge.
      */
-    var sessionDidReceiveAuthenticationChallenge: ChallengeBlock?
+    public var sessionDidReceiveAuthenticationChallenge: ChallengeBlock?
     /**
      Sets a block to be executed once all messages enqueued for a session have been delivered, as handled by the `NSURLSessionDataDelegate` method `URLSessionDidFinishEventsForBackgroundURLSession:`.
      
      - Parameter block: A block object to be executed once all messages enqueued for a session have been delivered. The block has no return value and takes a single argument: the session.
      */
-    var didFinishEventsForBackgroundURLSession: NSURLSessionBlock?
+    public var didFinishEventsForBackgroundURLSession: NSURLSessionBlock?
     /**
      Sets a block to be executed when an HTTP request is attempting to perform a redirection to a different URL, as handled by the `NSURLSessionTaskDelegate` method `URLSession:willPerformHTTPRedirection:newRequest:completionHandler:`.
      
      - Parameter block: A block object to be executed when an HTTP request is attempting to perform a redirection to a different URL. The block returns the request to be made for the redirection, and takes four arguments: the session, the task, the redirection response, and the request corresponding to the redirection response.
+     
+     ```
+        let doit = { (session: NSURLSession, t: NSURLSessionTask, response: NSURLResponse, request: NSURLRequest)->NSURLRequest? in
+                        return request
+                }
+     ```
      */
-    var taskWillPerformHTTPRedirection: RedirectionBlock?
+    public var taskWillPerformHTTPRedirection: RedirectionBlock?
     /**
      Sets a block to be executed when a session task has received a request specific authentication challenge, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didReceiveChallenge:completionHandler:`.
      
      - Parameter block: A block object to be executed when a session task has received a request specific authentication challenge. The block returns the disposition of the authentication challenge, and takes four arguments: the session, the task, the authentication challenge, and a pointer to the credential that should be used to resolve the challenge.
      */
-    var taskDidReceiveAuthenticationChallenge: TaskChallengeBlock?
+    public var taskDidReceiveAuthenticationChallenge: TaskChallengeBlock?
     /**
      Sets a block to be executed when a task requires a new request body stream to send to the remote server, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:needNewBodyStream:`.
      
      - Parameter block: A block object to be executed when a task requires a new request body stream.
      */
-    var taskNeedNewBodyStream: TaskNeedNewBodyStreamBlock?
+    public var taskNeedNewBodyStream: TaskNeedNewBodyStreamBlock?
     /**
      Sets a block to be executed periodically to track upload progress, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didSendBodyData:totalBytesSent:totalBytesExpectedToSend:`.
      
      - Parameter block: A block object to be called when an undetermined number of bytes have been uploaded to the server. This block has no return value and takes five arguments: the session, the task, the number of bytes written since the last time the upload progress block was called, the total bytes written, and the total bytes expected to be written during the request, as initially determined by the length of the HTTP body. This block may be called multiple times, and will execute on the main thread.
      */
-    var taskDidSendBodyData: TaskDidSendBodyDataBlock?
+    public var taskDidSendBodyData: TaskDidSendBodyDataBlock?
     /**
      Sets a block to be executed as the last message related to a specific task, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didCompleteWithError:`.
      
      - Parameter block: A block object to be executed when a session task is completed. The block has no return value, and takes three arguments: the session, the task, and any error that occurred in the process of executing the task.
      */
-    var taskDidComplete: TaskDidCompleteBlock?
+    public var taskDidComplete: TaskDidCompleteBlock?
     /**
      Sets a block to be executed when a data task has received a response, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:didReceiveResponse:completionHandler:`.
      
      - Parameter block: A block object to be executed when a data task has received a response. The block returns the disposition of the session response, and takes three arguments: the session, the data task, and the received response.
      */
-    var dataTaskDidReceiveResponse: TaskDidReceiveResponseBlock?
+    public var dataTaskDidReceiveResponse: TaskDidReceiveResponseBlock?
     /**
      Sets a block to be executed when a data task has become a download task, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:didBecomeDownloadTask:`.
      
      - Parameter block: A block object to be executed when a data task has become a download task. The block has no return value, and takes three arguments: the session, the data task, and the download task it has become.
      */
-    var dataTaskDidBecomeDownloadTask: DataTaskDidBecomeDownloadTaskBlock?
+    public var dataTaskDidBecomeDownloadTask: DataTaskDidBecomeDownloadTaskBlock?
     /**
      Sets a block to be executed when a data task receives data, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:didReceiveData:`.
      
      - Parameter block: A block object to be called when an undetermined number of bytes have been downloaded from the server. This block has no return value and takes three arguments: the session, the data task, and the data received. This block may be called multiple times, and will execute on the session manager operation queue.
      */
-    var dataTaskDidReceiveData: DataTaskDidReceiveDataBlock?
+    public var dataTaskDidReceiveData: DataTaskDidReceiveDataBlock?
     
     /**
      Sets a block to be executed to determine the caching behavior of a data task, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:willCacheResponse:completionHandler:`.
      
      - Parameter block: A block object to be executed to determine the caching behavior of a data task. The block returns the response to cache, and takes three arguments: the session, the data task, and the proposed cached URL response.
      */
-    var dataTaskWillCacheResponse: DataTaskWillCacheResponseBlock?
+    public var dataTaskWillCacheResponse: DataTaskWillCacheResponseBlock?
     /**
      Sets a block to be executed when a download task has completed a download, as handled by the `NSURLSessionDownloadDelegate` method `URLSession:downloadTask:didFinishDownloadingToURL:`.
      
      - Parameter block: A block object to be executed when a download task has completed. The block returns the URL the download should be moved to, and takes three arguments: the session, the download task, and the temporary location of the downloaded file. If the file manager encounters an error while attempting to move the temporary file to the destination, an `AFURLSessionDownloadTaskDidFailToMoveFileNotification` will be posted, with the download task as its object, and the user info of the error.
      */
-    var downloadTaskDidFinishDownloading: DownloadTaskDidFinishDownloadingBlock?
+    public var downloadTaskDidFinishDownloading: DownloadTaskDidFinishDownloadingBlock?
     /**
      Sets a block to be executed periodically to track download progress, as handled by the `NSURLSessionDownloadDelegate` method `URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesWritten:totalBytesExpectedToWrite:`.
      
      - Parameter block: A block object to be called when an undetermined number of bytes have been downloaded from the server. This block has no return value and takes five arguments: the session, the download task, the number of bytes read since the last time the download progress block was called, the total bytes read, and the total bytes expected to be read during the request, as initially determined by the expected content size of the `NSHTTPURLResponse` object. This block may be called multiple times, and will execute on the session manager operation queue.
      */
-    var downloadTaskDidWriteData: DownloadTaskDidWriteDataBlock?
+    public var downloadTaskDidWriteData: DownloadTaskDidWriteDataBlock?
     /**
      Sets a block to be executed when a download task has been resumed, as handled by the `NSURLSessionDownloadDelegate` method `URLSession:downloadTask:didResumeAtOffset:expectedTotalBytes:`.
      
      - Parameter block: A block object to be executed when a download task has been resumed. The block has no return value and takes four arguments: the session, the download task, the file offset of the resumed download, and the total number of bytes expected to be downloaded.
      */
-    var downloadTaskDidResume: DownloadTaskDidResumeBlock?
+    public var downloadTaskDidResume: DownloadTaskDidResumeBlock?
     
     // MARK: Working Around System Bugs
     
@@ -429,12 +435,11 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     }
     
     func addDelegateForDownloadTask(downloadTask: NSURLSessionDownloadTask, progress: ProgressBlock?,
-    destination:SFURLSessionManager<T>.TargetBlock?) -> Future<T>
-    //completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler
+    destination:SFURLSessionManager<T>.TargetBlock?) -> Future<NSURL>
     {
         let delegate = SFURLSessionManagerTaskDelegate<T>()
+        delegate.filePromise = Promise<NSURL>()
         delegate.manager = self
-        //delegate.completionHandler = completionHandler;
     
         if (destination != nil) {
             delegate.downloadTaskDidFinishDownloading = { (NSURLSession, task: NSURLSessionDownloadTask, location: NSURL) -> NSURL? in
@@ -447,7 +452,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
         self.taskDelegates[downloadTask.taskIdentifier] = delegate
     
         delegate.downloadProgressBlock = progress
-        return delegate.promise.future
+        return delegate.filePromise!.future
     }
 
     // MARK: Running Upload Tasks
@@ -536,7 +541,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     // MARK: Running Download Tasks
     
     
-    typealias TargetBlock = (NSURL, NSURLResponse) -> NSURL?
+    public typealias TargetBlock = (NSURL, NSURLResponse) -> NSURL?
     /**
      Creates an `NSURLSessionDownloadTask` with the specified request.
      
@@ -547,15 +552,13 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
      
      @warning If using a background `NSURLSessionConfiguration` on iOS, these blocks will be lost when the app is terminated. Background sessions may prefer to use `-setDownloadTaskDidFinishDownloadingBlock:` to specify the URL for saving the downloaded file, rather than the destination block of this method.
      */
-    func downloadTaskWithRequest(request: NSURLRequest, progress:ProgressBlock?, destination:TargetBlock)-> NSURLSessionDownloadTask? {
-        var downloadTask: NSURLSessionDownloadTask?
-        url_session_manager_create_task_safely({
-            downloadTask = self.session.downloadTaskWithRequest(request)
-        })
-        guard let task = downloadTask else { return nil }
+    public func downloadTaskWithRequest(request: NSURLRequest, progress:ProgressBlock? = nil, destination:TargetBlock? = nil)-> Future<NSURL> {
+        let downloadTask = self.session.downloadTaskWithRequest(request)
         
-        self.addDelegateForDownloadTask(task, progress:progress, destination:destination)
-        return task
+        let f = self.addDelegateForDownloadTask(downloadTask, progress:progress, destination:destination)
+        downloadTask.resume()
+        
+        return f
     }
     
     /**
@@ -618,7 +621,6 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
                     catch _ {
                         // TODO: error
                     }
-                    return
                 }
             }
         
