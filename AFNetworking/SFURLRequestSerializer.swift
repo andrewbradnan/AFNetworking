@@ -23,6 +23,6 @@ protocol SFURLRequestSerializer {
      
      - returns: A serialized request.
      */
-    func requestBySerializingRequest(request: NSURLRequest, withParameters:Parameters?) throws -> NSMutableURLRequest
+    func requestBySerializingRequest(request: NSURLRequest, withParameters:Parameters?, body: NSData?) throws -> NSMutableURLRequest
 }
 

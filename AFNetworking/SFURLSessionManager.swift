@@ -388,7 +388,6 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
      */
     public func dataTaskWithRequest(request: NSURLRequest, uploadProgress: ProgressBlock? = nil, downloadProgress:ProgressBlock? = nil) -> Future<T> {
         let dataTask = self.session.dataTaskWithRequest(request)
-        
         let rt = self.addDelegateForDataTask(dataTask, uploadProgress:uploadProgress, downloadProgress:downloadProgress)
         dataTask.resume()
         
@@ -630,6 +629,24 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
             delegate.downloadProgress.totalUnitCount = totalBytesExpectedToWrite
 
             delegate.downloadProgressBlock?(delegate.downloadProgress)
+        }
+    }
+
+    public func URLSession(session: NSURLSession, task: NSURLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+        var totalUnitCount = Int64(totalBytesExpectedToSend)
+        if(totalUnitCount == NSURLSessionTransferSizeUnknown) {
+            if let contentLength = task.originalRequest?.valueForHTTPHeaderField("Content-Length") {
+                totalUnitCount = Int64(contentLength) ?? NSURLSessionTransferSizeUnknown
+            }
+        }
+        
+        self.taskDidSendBodyData?(session, task, bytesSent, totalBytesSent, totalUnitCount)
+        
+        if let delegate = self.taskDelegates[task.taskIdentifier] {
+            delegate.uploadProgress.completedUnitCount = totalBytesSent
+            delegate.uploadProgress.totalUnitCount = totalUnitCount
+            
+            delegate.uploadProgressBlock?(delegate.uploadProgress)
         }
     }
     

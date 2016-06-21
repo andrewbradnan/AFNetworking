@@ -179,7 +179,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
      
      - Returns: An `NSMutableURLRequest` object.
      */
-    func requestWithMethod(method: String, URLString:String, parameters:[String:String]?) throws -> NSMutableURLRequest {
+    func requestWithMethod(method: String, URLString:String, parameters:[String:String]?, body: NSData?) throws -> NSMutableURLRequest {
         
         let url = NSURL(string:URLString)
         
@@ -193,7 +193,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
             }
         }
   */
-        let r = try self.requestBySerializingRequest(mutableRequest, withParameters:parameters) // mutableCopy];
+        let r = try self.requestBySerializingRequest(mutableRequest, withParameters:parameters, body:body) // mutableCopy];
         
         return r //.mutableRequest!
     }
@@ -214,7 +214,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
      */
     func multipartFormRequestWithMethod(method: String, URLString:String, parameters:[String:String], block:MultipartMakerBlock?) throws -> NSMutableURLRequest {
         
-        let mutableRequest = try self.requestWithMethod(method, URLString:URLString, parameters:nil)
+        let mutableRequest = try self.requestWithMethod(method, URLString:URLString, parameters:nil, body: nil)
         
         /*
         let formData = SFStreamingMultipartFormData(request:mutableRequest, stringEncoding:NSUTF8StringEncoding)
@@ -313,9 +313,9 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
         return self.HTTPMethodsEncodingParametersInURI.contains(method)
     }
     
-    func requestBySerializingRequest(request: NSURLRequest, withParameters parameters:Parameters?) throws -> NSMutableURLRequest {
+    func requestBySerializingRequest(request: NSURLRequest, withParameters parameters:Parameters?, body: NSData? = nil) throws -> NSMutableURLRequest {
         if let mutableRequest = request.mutableRequest {
-
+            
             for pair in self.headers {
                 if request.valueForHTTPHeaderField(pair.0) == nil {
                     mutableRequest.setValue(pair.1, forKey: pair.0)
@@ -331,6 +331,8 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
                     mutableRequest.addValue(pair.1, forHTTPHeaderField: pair.0)
                 }
             }
+            
+            mutableRequest.HTTPBody = body
             
             if let p = parameters, serialize = self.queryStringSerializer {
                 var query = try serialize(request, parameters: p)

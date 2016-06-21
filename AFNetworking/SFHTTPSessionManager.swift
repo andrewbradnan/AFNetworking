@@ -140,6 +140,7 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
         let rt = self.dataTaskWithHTTPMethod("GET",
                             url:url,
                             parameters:parameters,
+                            body: nil,
                             uploadProgress:nil,
                             downloadProgress:downloadProgress)
         return rt
@@ -157,6 +158,7 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
         let rt = self.dataTaskWithHTTPMethod("HEAD",
                                              url:url,
                                              parameters:parameters,
+                                             body: nil,
                                              uploadProgress:nil,
                                              downloadProgress:nil)
         return rt
@@ -171,10 +173,11 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      
      - seealso: -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
      */
-    public func POST(url: String, parameters:Parameters?, uploadProgress:ProgressBlock?) -> Future<T> {
+    public func POST(url: String, parameters:Parameters?, body: NSData?, uploadProgress:ProgressBlock?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("POST",
                                              url:url,
                                              parameters:parameters,
+                                             body: body,
                                              uploadProgress:uploadProgress,
                                              downloadProgress:nil)
         return rt
@@ -220,6 +223,7 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
         let rt = self.dataTaskWithHTTPMethod("PUT",
                                              url:url,
                                              parameters:parameters,
+                                             body: nil,
                                              uploadProgress:nil,
                                              downloadProgress:nil)
         return rt
@@ -237,6 +241,7 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
         let rt = self.dataTaskWithHTTPMethod("PATCH",
                                              url:url,
                                              parameters:parameters,
+                                             body: nil,
                                              uploadProgress:nil,
                                              downloadProgress:nil)
         return rt
@@ -254,16 +259,17 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
         let rt = self.dataTaskWithHTTPMethod("DELETE",
                                              url:url,
                                              parameters:parameters,
+                                             body: nil,
                                              uploadProgress:nil,
                                              downloadProgress:nil)
         return rt
     }
     
-    public func dataTaskWithHTTPMethod(method: String, url:String, parameters:Parameters?, uploadProgress:ProgressBlock?, downloadProgress:ProgressBlock?) -> Future<T> {
+    public func dataTaskWithHTTPMethod(method: String, url:String, parameters:Parameters?, body: NSData?, uploadProgress:ProgressBlock?, downloadProgress:ProgressBlock?) -> Future<T> {
         do {
             let urlString = NSURL(string: url, relativeToURL:self.baseURL)!.absoluteString
             
-            let request = try self.requestSerializer.requestWithMethod(method, URLString:urlString, parameters:parameters)
+            let request = try self.requestSerializer.requestWithMethod(method, URLString:urlString, parameters:parameters, body: body)
             
             let f = self.dataTaskWithRequest(request,
                                                 uploadProgress:uploadProgress,

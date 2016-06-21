@@ -178,7 +178,6 @@ class SFNetworkingTests: XCTestCase {
         self.waitForExpectationsWithTimeout(10.0, handler:nil)
     }
 
-*/
 
 //    #pragma mark - NSCoding
 //    
@@ -223,31 +222,30 @@ class SFNetworkingTests: XCTestCase {
         
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
+    */
     
-        /*
-    func testUploadProgressIsReportedForPOST {
-        NSMutableString *payload = [NSMutableString stringWithString:@"AFNetworking"];
-        while ([payload lengthOfBytesUsingEncoding:NSUTF8StringEncoding] < 20000) {
-        [payload appendString:@"AFNetworking"];
+    func testUploadProgressIsReportedForPOST() {
+        var payload = "SFNetworking"
+        while payload.length < 20000 {
+            payload += "SFNetworking"
         }
         
         let expectation = self.expectationWithDescription("Progress should equal 1.0")
         
-        [self.manager
-        POST:@"post"
-        parameters:payload
-        progress:^(NSProgress * _Nonnull uploadProgress) {
-        if (uploadProgress.fractionCompleted == 1.0) {
-        [expectation fulfill];
-        expectation = nil;
-        }
-        }
-        success:nil
-        failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.manager.POST("post", parameters:nil, body: payload.dataUsingEncoding(NSASCIIStringEncoding), uploadProgress: { (uploadProgress:NSProgress) in
+            NSLog("%f uploaded", uploadProgress.fractionCompleted)
+            
+            if uploadProgress.fractionCompleted == 1.0 {
+                expectation.fulfill()
+            }
+        })
+
+        self.waitForExpectationsWithTimeout(90.0, handler: nil)
     }
     
-    func testUploadProgressIsReportedForStreamingPost {
+    /*
+
+     func testUploadProgressIsReportedForStreamingPost {
         NSMutableString *payload = [NSMutableString stringWithString:@"AFNetworking"];
         while ([payload lengthOfBytesUsingEncoding:NSUTF8StringEncoding] < 20000) {
         [payload appendString:@"AFNetworking"];

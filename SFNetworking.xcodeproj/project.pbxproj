@@ -22,13 +22,14 @@
 		05C659141D0F41F300E2ADDF /* SFHTTPResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05512F271D07319100C3DCB9 /* SFHTTPResponseSerializer.swift */; };
 		05C659151D0F420700E2ADDF /* SFResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05512F251D072FB700C3DCB9 /* SFResponseSerializer.swift */; };
 		05C659161D0F4B4500E2ADDF /* SFURLRequestSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058EF1BD1D0239F800D5D425 /* SFURLRequestSerializer.swift */; };
-		05C659181D0F682700E2ADDF /* NSURLRequest-Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05C659171D0F682700E2ADDF /* NSURLRequest-Extension.swift */; };
 		05C6591A1D107E4300E2ADDF /* SFJSONResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05C659191D107E4300E2ADDF /* SFJSONResponseSerializer.swift */; };
 		05DD37421D18AD1D00C1B2CD /* SFNetworkingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DD37411D18AD1D00C1B2CD /* SFNetworkingTests.swift */; };
 		05DD37441D18AD1D00C1B2CD /* SFNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 299522391BBF104D00859F49 /* SFNetworking.framework */; };
 		05DD374B1D18BDA100C1B2CD /* Pods_SFNetworking_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05DD374A1D18BDA100C1B2CD /* Pods_SFNetworking_iOS.framework */; };
 		05DD374C1D18BDCB00C1B2CD /* Pods_SFNetworking_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05DD374A1D18BDA100C1B2CD /* Pods_SFNetworking_iOS.framework */; };
 		05DD374E1D18BDEE00C1B2CD /* FutureKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05DD374D1D18BDEE00C1B2CD /* FutureKit.framework */; };
+		05DD374F1D19F2E300C1B2CD /* NSURLRequest-Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05C659171D0F682700E2ADDF /* NSURLRequest-Extension.swift */; };
+		05DD37511D19F63400C1B2CD /* SwiftCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05DD37501D19F63400C1B2CD /* SwiftCommon.framework */; };
 		1BF9F9601C87832B00F1F35A /* AFImageResponseSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BF9F95F1C87832B00F1F35A /* AFImageResponseSerializerTests.m */; };
 		1BF9F9611C87843200F1F35A /* AFImageResponseSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BF9F95F1C87832B00F1F35A /* AFImageResponseSerializerTests.m */; };
 		1BF9F9621C87843300F1F35A /* AFImageResponseSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BF9F95F1C87832B00F1F35A /* AFImageResponseSerializerTests.m */; };
@@ -222,6 +223,7 @@
 		05DD37431D18AD1D00C1B2CD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		05DD374A1D18BDA100C1B2CD /* Pods_SFNetworking_iOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Pods_SFNetworking_iOS.framework; path = "../../../../Users/andrewbradnan/Library/Developer/Xcode/DerivedData/SFNetworking-gfqxihcwomyqytfyygtisnewsrzd/Build/Products/Debug-iphonesimulator/Pods_SFNetworking_iOS.framework"; sourceTree = "<group>"; };
 		05DD374D1D18BDEE00C1B2CD /* FutureKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FutureKit.framework; path = "../../../../Users/andrewbradnan/Library/Developer/Xcode/DerivedData/SFNetworking-gfqxihcwomyqytfyygtisnewsrzd/Build/Products/Debug-iphonesimulator/FutureKit.framework"; sourceTree = "<group>"; };
+		05DD37501D19F63400C1B2CD /* SwiftCommon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftCommon.framework; path = "../../../../Users/andrewbradnan/Library/Developer/Xcode/DerivedData/SFNetworking-gfqxihcwomyqytfyygtisnewsrzd/Build/Products/Debug-iphonesimulator/SwiftCommon.framework"; sourceTree = "<group>"; };
 		1BF9F95F1C87832B00F1F35A /* AFImageResponseSerializerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFImageResponseSerializerTests.m; sourceTree = "<group>"; };
 		1FE783001C58579D00A73B7C /* httpbinorg_01192017.cer */ = {isa = PBXFileReference; lastKnownFileType = file; path = httpbinorg_01192017.cer; sourceTree = "<group>"; };
 		20670131C77F140627752AC7 /* Pods_SFNetworking_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SFNetworking_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -261,16 +263,16 @@
 		299522391BBF104D00859F49 /* SFNetworking.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SFNetworking.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2995223C1BBF104D00859F49 /* AFNetworking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AFNetworking.h; path = ../Framework/AFNetworking.h; sourceTree = "<group>"; };
 		2995223E1BBF104D00859F49 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../Framework/Info.plist; sourceTree = "<group>"; };
-		299522461BBF125A00859F49 /* AFHTTPSessionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = AFHTTPSessionManager.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		299522471BBF125A00859F49 /* AFHTTPSessionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFHTTPSessionManager.m; sourceTree = "<group>"; };
+		299522461BBF125A00859F49 /* AFHTTPSessionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = AFHTTPSessionManager.h; path = AFNetworking/AFHTTPSessionManager.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		299522471BBF125A00859F49 /* AFHTTPSessionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFHTTPSessionManager.m; path = AFNetworking/AFHTTPSessionManager.m; sourceTree = "<group>"; };
 		299522491BBF125A00859F49 /* AFNetworkReachabilityManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFNetworkReachabilityManager.h; path = AFNetworking/AFNetworkReachabilityManager.h; sourceTree = "<group>"; };
 		2995224A1BBF125A00859F49 /* AFNetworkReachabilityManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFNetworkReachabilityManager.m; path = AFNetworking/AFNetworkReachabilityManager.m; sourceTree = "<group>"; };
 		2995224B1BBF125A00859F49 /* AFSecurityPolicy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFSecurityPolicy.h; path = AFNetworking/AFSecurityPolicy.h; sourceTree = "<group>"; };
 		2995224C1BBF125A00859F49 /* AFSecurityPolicy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFSecurityPolicy.m; path = AFNetworking/AFSecurityPolicy.m; sourceTree = "<group>"; };
-		2995224D1BBF125A00859F49 /* AFURLRequestSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFURLRequestSerialization.h; sourceTree = "<group>"; };
-		2995224E1BBF125A00859F49 /* AFURLRequestSerialization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFURLRequestSerialization.m; sourceTree = "<group>"; };
-		2995224F1BBF125A00859F49 /* AFURLResponseSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFURLResponseSerialization.h; sourceTree = "<group>"; };
-		299522501BBF125A00859F49 /* AFURLResponseSerialization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFURLResponseSerialization.m; sourceTree = "<group>"; };
+		2995224D1BBF125A00859F49 /* AFURLRequestSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFURLRequestSerialization.h; path = AFNetworking/AFURLRequestSerialization.h; sourceTree = "<group>"; };
+		2995224E1BBF125A00859F49 /* AFURLRequestSerialization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFURLRequestSerialization.m; path = AFNetworking/AFURLRequestSerialization.m; sourceTree = "<group>"; };
+		2995224F1BBF125A00859F49 /* AFURLResponseSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFURLResponseSerialization.h; path = AFNetworking/AFURLResponseSerialization.h; sourceTree = "<group>"; };
+		299522501BBF125A00859F49 /* AFURLResponseSerialization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFURLResponseSerialization.m; path = AFNetworking/AFURLResponseSerialization.m; sourceTree = "<group>"; };
 		299522511BBF125A00859F49 /* AFURLSessionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AFURLSessionManager.h; path = AFNetworking/AFURLSessionManager.h; sourceTree = "<group>"; };
 		299522521BBF125A00859F49 /* AFURLSessionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AFURLSessionManager.m; path = AFNetworking/AFURLSessionManager.m; sourceTree = "<group>"; };
 		299522651BBF129200859F49 /* SFNetworking.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SFNetworking.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -313,6 +315,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05DD37511D19F63400C1B2CD /* SwiftCommon.framework in Frameworks */,
 				05DD374E1D18BDEE00C1B2CD /* FutureKit.framework in Frameworks */,
 				05DD374C1D18BDCB00C1B2CD /* Pods_SFNetworking_iOS.framework in Frameworks */,
 				05DD37441D18AD1D00C1B2CD /* SFNetworking.framework in Frameworks */,
@@ -385,8 +388,14 @@
 				2995224C1BBF125A00859F49 /* AFSecurityPolicy.m */,
 				299522491BBF125A00859F49 /* AFNetworkReachabilityManager.h */,
 				2995224A1BBF125A00859F49 /* AFNetworkReachabilityManager.m */,
+				299522461BBF125A00859F49 /* AFHTTPSessionManager.h */,
+				299522471BBF125A00859F49 /* AFHTTPSessionManager.m */,
 				299522511BBF125A00859F49 /* AFURLSessionManager.h */,
 				299522521BBF125A00859F49 /* AFURLSessionManager.m */,
+				2995224D1BBF125A00859F49 /* AFURLRequestSerialization.h */,
+				2995224E1BBF125A00859F49 /* AFURLRequestSerialization.m */,
+				2995224F1BBF125A00859F49 /* AFURLResponseSerialization.h */,
+				299522501BBF125A00859F49 /* AFURLResponseSerialization.m */,
 			);
 			name = AFNetworking;
 			sourceTree = "<group>";
@@ -545,17 +554,11 @@
 			children = (
 				058EF1B61D02001100D5D425 /* SFURLSessionManager.swift */,
 				058EF1B81D022A8900D5D425 /* SFURLSessionManagerDelegate.swift */,
-				299522461BBF125A00859F49 /* AFHTTPSessionManager.h */,
-				299522471BBF125A00859F49 /* AFHTTPSessionManager.m */,
 				058EF1BB1D02320E00D5D425 /* SFHTTPSessionManager.swift */,
 				05512F291D075F6F00C3DCB9 /* SFNetworkReachabilityManager.swift */,
 				055F6C211D00E67A00C7CE7F /* SFSecurityPolicy.swift */,
-				2995224D1BBF125A00859F49 /* AFURLRequestSerialization.h */,
-				2995224E1BBF125A00859F49 /* AFURLRequestSerialization.m */,
 				058EF1BD1D0239F800D5D425 /* SFURLRequestSerializer.swift */,
 				058EF1BF1D023B5F00D5D425 /* SFHttpRequestSerializer.swift */,
-				2995224F1BBF125A00859F49 /* AFURLResponseSerialization.h */,
-				299522501BBF125A00859F49 /* AFURLResponseSerialization.m */,
 				05512F251D072FB700C3DCB9 /* SFResponseSerializer.swift */,
 				05512F271D07319100C3DCB9 /* SFHTTPResponseSerializer.swift */,
 				05C659191D107E4300E2ADDF /* SFJSONResponseSerializer.swift */,
@@ -623,6 +626,7 @@
 		A9D8557869096586D670407B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				05DD37501D19F63400C1B2CD /* SwiftCommon.framework */,
 				05DD374D1D18BDEE00C1B2CD /* FutureKit.framework */,
 				05DD374A1D18BDA100C1B2CD /* Pods_SFNetworking_iOS.framework */,
 				05512F2B1D0762F300C3DCB9 /* SystemConfiguration.framework */,
@@ -1137,6 +1141,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05DD374F1D19F2E300C1B2CD /* NSURLRequest-Extension.swift in Sources */,
 				05C6591A1D107E4300E2ADDF /* SFJSONResponseSerializer.swift in Sources */,
 				05512F241D072D7500C3DCB9 /* SFMultipartFormData.swift in Sources */,
 				05C659141D0F41F300E2ADDF /* SFHTTPResponseSerializer.swift in Sources */,
@@ -1145,7 +1150,6 @@
 				058EF1BC1D02320E00D5D425 /* SFHTTPSessionManager.swift in Sources */,
 				05512F221D06347E00C3DCB9 /* Array-Extension.swift in Sources */,
 				058EF1C01D023B5F00D5D425 /* SFHttpRequestSerializer.swift in Sources */,
-				05C659181D0F682700E2ADDF /* NSURLRequest-Extension.swift in Sources */,
 				05512F301D09EC0A00C3DCB9 /* SFNetworkReachabilityManager.swift in Sources */,
 				0519664D1D04F5C20051201A /* NSURL-Extension.swift in Sources */,
 				058EF1B71D02001100D5D425 /* SFURLSessionManager.swift in Sources */,

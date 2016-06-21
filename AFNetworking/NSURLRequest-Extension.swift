@@ -17,6 +17,11 @@ extension NSURLRequest {
             let rt = NSMutableURLRequest(URL: url,
                                 cachePolicy: self.cachePolicy,
                                 timeoutInterval: self.timeoutInterval)
+
+            if self.HTTPMethod != nil {
+                rt.HTTPMethod = self.HTTPMethod!
+            }
+            
             return rt
         }
     }
