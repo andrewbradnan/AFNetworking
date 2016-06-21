@@ -8,6 +8,7 @@
 
 import XCTest
 import SFNetworking
+import FutureKit
 
 class SFNetworkingTests: XCTestCase {
     
@@ -44,50 +45,54 @@ class SFNetworkingTests: XCTestCase {
     
     // MARK: misc
     
+    /*
     func testThatOperationInvokesCompletionHandlerWithResponseObjectOnSuccess() {
-    //__block id blockResponseObject = nil;
-    //__block id blockError = nil;
-    
         let expectation = self.expectationWithDescription("Request should succeed")
     
         if let get = NSURL(string:"/get", relativeToURL:self.baseURL) {
             let request = NSURLRequest(URL:get)
             
-            let f = self.manager.dataTaskWithRequest(request)
+            let f = self.getFutureForRequest(request)
 
             f.onSuccess{
                 expectation.fulfill()
             }
-            f.onFail(block: { _ in XCTAssert(false, "fail") })
-            f.onCancel(block: { XCTAssert(false, "cancelled") })
             
             self.waitForExpectationsWithTimeout(10.0, handler:nil)
 
             XCTAssertTrue(f.isCompleted)
         }
     }
-
-    /*
-    func testThatOperationInvokesFailureCompletionBlockWithErrorOnFailure {
-        __block id blockError = nil;
+*/
+    func getFutureForRequest(request: NSURLRequest) -> Future<Void> {
+        let f = self.manager.dataTaskWithRequest(request)
         
-        let expectation = self.expectationWithDescription("Request should succeed")
+        f.onFail(block: { _ in XCTAssert(false, "fail") })
+        f.onCancel(block: { XCTAssert(false, "cancelled") })
         
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/status/404" relativeToURL:self.baseURL]];
-        NSURLSessionDataTask *task = [self.manager dataTaskWithRequest:request uploadProgress:nil downloadProgress:nil
-        completionHandler:^(NSURLResponse *response, id responseObject, NSError *error) {
-        blockError = error;
-        [expectation fulfill];
-        }];
-        
-        [task resume];
-        
-        [self waitForExpectationsWithTimeout:10.0 handler:nil];
-        
-        XCTAssertTrue(task.state == NSURLSessionTaskStateCompleted);
-        XCTAssertNotNil(blockError);
+        return f
     }
     
+    func testThatOperationInvokesFailureCompletionBlockWithErrorOnFailure() {
+        let expectation = self.expectationWithDescription("Request should 404")
+        
+        if let fourofour = NSURL(string:"/status/404", relativeToURL:self.baseURL) {
+            let request = NSURLRequest(URL:fourofour)
+            let f = self.manager.dataTaskWithRequest(request)
+        
+            f.onFail(block: { (error:ErrorType) in
+                expectation.fulfill()
+            })
+            f.onSuccess(block: { XCTAssert(false, "success unexpected") })
+            f.onCancel(block: { XCTAssert(false, "cancelled") })
+
+            self.waitForExpectationsWithTimeout(10.0, handler:nil)
+
+            XCTAssertTrue(f.isCompleted)
+        }
+    }
+    
+    /*
     func testThatRedirectBlockIsCalledWhen302IsEncountered {
         __block BOOL success;
         __block NSError *blockError = nil;

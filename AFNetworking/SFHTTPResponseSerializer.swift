@@ -23,6 +23,9 @@ public class SFHTTPResponseSerializer<T> : SFURLResponseSerializer  {
     
     init(converter: ConverterBlock) {
         self.converter = converter
+        for sc in 200..<300 {
+            self.acceptableStatusCodes.insert(sc)
+        }
     }
     
     /**
@@ -40,7 +43,7 @@ public class SFHTTPResponseSerializer<T> : SFURLResponseSerializer  {
      
      See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
      */
-    let acceptableStatusCodes = Set<Int>()
+    var acceptableStatusCodes = Set<Int>()
     
     /**
      The acceptable MIME types for responses. When non-`nil`, responses with a `Content-Type` with MIME types that do not intersect with the set will result in an error during validation.

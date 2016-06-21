@@ -53,6 +53,17 @@ class SFJSONResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
     
     // MARK: SFURLResponseSerialization
     func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
+        if data.length == 0 {
+            throw SFError.EmptyResponse
+        }
+        
+        // check status codes
+        if let http = response as? NSHTTPURLResponse {
+            let sc = http.statusCode
+            if !self.acceptableStatusCodes.contains(sc) {
+                throw SFError.FailedResponse(sc)
+            }
+        }
         return try jsonConverter(JSON(data: data))
     }
 }

@@ -388,6 +388,8 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
 enum SFError : ErrorType {
     case BadRequest
     case InvalidResponse    // either no response or no data
+    case EmptyResponse
+    case FailedResponse(Int)    // statusCode
 }
 
 public var SFHTTPRequestSerializerObservedKeyPaths = getSFHTTPRequestSerializerObservedKeyPaths()
