@@ -306,6 +306,9 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
                 return
             }
         }
+        
+        self.downloadFileURL = self.downloadFileURL ?? location
+        
         guard let url = self.downloadFileURL else { self.filePromise!.completeWithFail(SFError.NoLocation); return }
         
         self.filePromise!.completeWithSuccess(url)

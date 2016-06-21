@@ -116,8 +116,7 @@ class SFNetworkingTests: XCTestCase {
             XCTAssertTrue(f.isCompleted)
         }
     }
-*/
-    
+ 
     func testDownloadFileCompletionSpecifiesURLInCompletionWithManagerDidFinishBlock() {
         var managerDownloadFinishedBlockExecuted = false
         var downloadFilePath: NSURL?
@@ -128,7 +127,6 @@ class SFNetworkingTests: XCTestCase {
             managerDownloadFinishedBlockExecuted = true
             let dirURL = NSFileManager.defaultManager().URLsForDirectory(.LibraryDirectory, inDomains:.UserDomainMask).last
         
-            
             downloadFilePath = dirURL?.URLByAppendingPathComponent("t1.file")
             return downloadFilePath
         }
@@ -145,33 +143,27 @@ class SFNetworkingTests: XCTestCase {
         XCTAssertTrue(managerDownloadFinishedBlockExecuted)
         XCTAssertNotNil(downloadFilePath)
     }
-    
-    /*
-    func testDownloadFileCompletionSpecifiesURLInCompletionBlock {
-        __block BOOL destinationBlockExecuted = NO;
-        __block BOOL completionBlockExecuted = NO;
-        __block NSURL *downloadFilePath = nil;
+     */
+ 
+    func testDownloadFileCompletionSpecifiesURLInCompletion() {
+        var downloadFilePath: NSURL?
+        
         let expectation = self.expectationWithDescription("Request should succeed")
         
-        NSURLSessionDownloadTask *downloadTask = [self.manager downloadTaskWithRequest:[NSURLRequest requestWithURL:self.baseURL]
-        progress:nil
-        destination:^NSURL *(NSURL *targetPath, NSURLResponse *response) {
-        destinationBlockExecuted = YES;
-        NSURL *dirURL  = [[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask] lastObject];
-        return [dirURL URLByAppendingPathComponent:@"t1.file"];
+        let f = self.manager.downloadTaskWithRequest(NSURLRequest(URL:self.baseURL!))
+        
+        f.onSuccess{ url in
+            downloadFilePath = url
+            expectation.fulfill()
         }
-        completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
-        downloadFilePath = filePath;
-        completionBlockExecuted = YES;
-        [expectation fulfill];
-        }];
-        [downloadTask resume];
-        [self waitForExpectationsWithTimeout:10.0 handler:nil];
-        XCTAssertTrue(completionBlockExecuted);
-        XCTAssertTrue(destinationBlockExecuted);
-        XCTAssertNotNil(downloadFilePath);
+        
+        self.waitForExpectationsWithTimeout(10.0, handler:nil)
+        
+        XCTAssertTrue(f.isCompleted)
+        XCTAssertNotNil(downloadFilePath)
     }
     
+    /*
     func testThatSerializationErrorGeneratesErrorAndNullTaskForGET {
         let expectation = self.expectationWithDescription("Serialization should fail")
 
