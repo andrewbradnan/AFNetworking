@@ -81,7 +81,7 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      Requests created with `requestWithMethod:URLString:parameters:` & `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:` are constructed with a set of default headers using a parameter serialization specified by this property. By default, this is set to an instance of `SFHTTPRequestSerializer`, which serializes query string parameters for `GET`, `HEAD`, and `DELETE` requests, or otherwise URL-form-encodes HTTP message bodies.
      
      */
-    var requestSerializer: SFHTTPRequestSerializer
+    public var requestSerializer: SFHTTPRequestSerializer
     
     // MARK: Initialization
     
@@ -133,12 +133,10 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
      - Parameter downloadProgress: A block object to be executed when the download progress is updated. Note this block is called on the session queue, not the main queue.
-     - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
-     - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
      
      - seealso: dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler
      */
-    func GET(url: String, parameters:Parameters?, downloadProgress:ProgressBlock?) -> Future<T> {
+    public func GET(url: String, parameters:Parameters?, downloadProgress:ProgressBlock?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("GET",
                             url:url,
                             parameters:parameters,
@@ -152,12 +150,10 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
-     - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes a single arguments: the data task.
-     - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
      
      - seealso: dataTaskWithRequest:completionHandler:
      */
-    func HEAD(url: String, parameters:Parameters?)-> Future<T> {
+    public func HEAD(url: String, parameters:Parameters?)-> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("HEAD",
                                              url:url,
                                              parameters:parameters,
@@ -172,12 +168,10 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
      - Parameter uploadProgress: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
-     - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
-     - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
      
      - seealso: -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
      */
-    func POST(url: String, parameters:Parameters?, uploadProgress:ProgressBlock?) -> Future<T> {
+    public func POST(url: String, parameters:Parameters?, uploadProgress:ProgressBlock?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("POST",
                                              url:url,
                                              parameters:parameters,
@@ -192,16 +186,12 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
      - Parameter block: A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `SFMultipartFormData` protocol.
-     - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
-     - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
     
     //DEPRECATED_ATTRIBUTE;
     //    func POST(url: String, parameters:P?, constructingBodyWithBlock:(nullable void (^)(id <SFMultipartFormData> formData))block
-    //    success:(nullable void (^)(NSURLSessionDataTask *task, id _Nullable responseObject))success
-    //    failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure)-> NSURLSessionDataTask?
     
     typealias MultiPartMakerBlock = SFMultipartFormData -> Void
     /**
@@ -211,8 +201,6 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
      - Parameter block: A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `SFMultipartFormData` protocol.
      - Parameter uploadProgress: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
-     - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
-     - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
      
      - seealso: -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
      */
@@ -225,12 +213,10 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
-     - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
-     - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
-    func PUT(url: String, parameters:Parameters?) -> Future<T> {
+    public func PUT(url: String, parameters:Parameters?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("PUT",
                                              url:url,
                                              parameters:parameters,
@@ -244,12 +230,10 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
-     - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
-     - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
-    func PATCH(url: String, parameters:Parameters?) -> Future<T> {
+    public func PATCH(url: String, parameters:Parameters?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("PATCH",
                                              url:url,
                                              parameters:parameters,
@@ -263,12 +247,10 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
-     - Parameter success: A block object to be executed when the task finishes successfully. This block has no return value and takes two arguments: the data task, and the response object created by the client response serializer.
-     - Parameter failure: A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
-    func DELETE(url: String, parameters:Parameters?) -> Future<T> {
+    public func DELETE(url: String, parameters:Parameters?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("DELETE",
                                              url:url,
                                              parameters:parameters,

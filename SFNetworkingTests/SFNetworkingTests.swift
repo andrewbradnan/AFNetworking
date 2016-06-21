@@ -143,7 +143,6 @@ class SFNetworkingTests: XCTestCase {
         XCTAssertTrue(managerDownloadFinishedBlockExecuted)
         XCTAssertNotNil(downloadFilePath)
     }
-     */
  
     func testDownloadFileCompletionSpecifiesURLInCompletion() {
         var downloadFilePath: NSURL?
@@ -162,30 +161,25 @@ class SFNetworkingTests: XCTestCase {
         XCTAssertTrue(f.isCompleted)
         XCTAssertNotNil(downloadFilePath)
     }
-    
-    /*
-    func testThatSerializationErrorGeneratesErrorAndNullTaskForGET {
+     */
+    func testThatSerializationErrorGeneratesErrorAndNullTaskForGET() {
         let expectation = self.expectationWithDescription("Serialization should fail")
 
-        [self.manager.requestSerializer setQueryStringSerializationWithBlock:^NSString * _Nonnull(NSURLRequest * _Nonnull request, id  _Nonnull parameters, NSError * _Nullable __autoreleasing * _Nullable error) {
-        *error = [NSError errorWithDomain:@"Custom" code:-1 userInfo:nil];
-        return @"";
-        }];
+        self.manager.requestSerializer.queryStringSerializer = { (NSURLRequest, parameters: Parameters) throws -> String in
+            throw TestError.Foo
+        }
         
-        NSURLSessionTask *nilTask;
-        nilTask = [self.manager
-        GET:@"test"
-        parameters:@{@"key":@"value"}
-        progress:nil
-        success:nil
-        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        XCTAssertNil(task);
-        [expectation fulfill];
-        }];
-        XCTAssertNil(nilTask);
-        [self waitForExpectationsWithTimeout:10.0 handler:nil];
+        let f = self.manager.GET("test", parameters:["key":"value"], downloadProgress:nil)
+        
+        f.onFail{ e -> Void in
+            expectation.fulfill()
+        }
+
+        self.waitForExpectationsWithTimeout(10.0, handler:nil)
     }
-    
+
+    /*
+
 //    #pragma mark - NSCoding
 //    
 //    - (void)testSupportsSecureCoding {
@@ -508,4 +502,8 @@ class SFNetworkingTests: XCTestCase {
         [manager invalidateSessionCancelingTasks:YES];
     }
  */
+}
+
+enum TestError: ErrorType {
+    case Foo
 }

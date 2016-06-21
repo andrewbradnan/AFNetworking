@@ -15,11 +15,11 @@ import Foundation
  Any request or response serializer dealing with HTTP is encouraged to subclass `SFHTTPRequestSerializer` in order to ensure consistent default behavior.
  */
 
-class SFHTTPRequestSerializer: SFURLRequestSerializer {
+public class SFHTTPRequestSerializer: SFURLRequestSerializer {
     
-    typealias QueryStringSerializationBlock = (NSURLRequest, parameters: Parameters) throws -> String
+    public typealias QueryStringSerializationBlock = (NSURLRequest, parameters: Parameters) throws -> String
 
-    var queryStringSerializer: QueryStringSerializationBlock?
+    public var queryStringSerializer: QueryStringSerializationBlock?
     
     /// The string encoding used to serialize parameters. `NSUTF8StringEncoding` by default.
     let stringEncoding = NSUTF8StringEncoding
