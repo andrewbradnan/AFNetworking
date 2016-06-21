@@ -63,7 +63,7 @@ class SFNetworkingTests: XCTestCase {
             XCTAssertTrue(f.isCompleted)
         }
     }
-*/
+
     func getFutureForRequest(request: NSURLRequest) -> Future<Void> {
         let f = self.manager.dataTaskWithRequest(request)
         
@@ -72,6 +72,7 @@ class SFNetworkingTests: XCTestCase {
         
         return f
     }
+    */
     /*
     func testThatOperationInvokesFailureCompletionBlockWithErrorOnFailure() {
         let expectation = self.expectationWithDescription("Request should 404")
@@ -222,7 +223,7 @@ class SFNetworkingTests: XCTestCase {
         
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
-    */
+ 
     
     func testUploadProgressIsReportedForPOST() {
         var payload = "SFNetworking"
@@ -243,12 +244,12 @@ class SFNetworkingTests: XCTestCase {
         self.waitForExpectationsWithTimeout(90.0, handler: nil)
     }
     
-    /*
-
-     func testUploadProgressIsReportedForStreamingPost {
-        NSMutableString *payload = [NSMutableString stringWithString:@"AFNetworking"];
-        while ([payload lengthOfBytesUsingEncoding:NSUTF8StringEncoding] < 20000) {
-        [payload appendString:@"AFNetworking"];
+    */
+/*
+     func testUploadProgressIsReportedForStreamingPost() {
+        var payload = "SFNetworking"
+        while payload.length < 20000 {
+            payload += "SFNetworking"
         }
         
         let expectation = self.expectationWithDescription("Progress should equal 1.0")
@@ -269,38 +270,33 @@ class SFNetworkingTests: XCTestCase {
         failure:nil];
         [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
     }
-    
+  */
     // MARK: HTTP Status Codes
     
-    func testThatSuccessBlockIsCalledFor200 {
+    /*
+    func testThatSuccessBlockIsCalledFor200() {
         let expectation = self.expectationWithDescription("Request should succeed")
         
-        [self.manager
-        GET:@"status/200"
-        parameters:nil
-        progress:nil
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        [expectation fulfill];
-        }
-        failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        let f = self.manager.GET("status/200", parameters:nil, downloadProgress:nil)
+        
+        f.onSuccess{ _ in expectation.fulfill() }
+        
+        self.waitForExpectationsWithTimeout(10.0, handler:nil)
     }
-    
-    func testThatFailureBlockIsCalledFor404 {
+    func testThatFailureBlockIsCalledFor404() {
         let expectation = self.expectationWithDescription("Request should succeed")
 
-        [self.manager
-        GET:@"status/404"
-        parameters:nil
-        progress:nil
-        success:nil
-        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nullable error) {
-        [expectation fulfill];
-        }];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        let f = self.manager.GET("status/404", parameters:nil, downloadProgress:nil)
+        
+        f.onFail{ _ in
+            expectation.fulfill()
+        }
+        
+        self.waitForExpectationsWithTimeout(10.0, handler:nil)
     }
-    
-    func testThatResponseObjectIsEmptyFor204 {
+    */
+    /*
+    func testThatResponseObjectIsEmptyFor204() {
         __block id urlResponseObject = nil;
         let expectation = self.expectationWithDescription("Request should succeed")
 
@@ -316,53 +312,40 @@ class SFNetworkingTests: XCTestCase {
         [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
         XCTAssertNil(urlResponseObject);
     }
-    
+    */
     // MARK: Rest Interface
     
-    func testGET {
+    func testGET() {
         let expectation = self.expectationWithDescription("Request should succeed")
 
-        [self.manager
-        GET:@"get"
-        parameters:nil
-        progress:nil
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        XCTAssertNotNil(responseObject);
-        [expectation fulfill];
-        }
-        failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        let f = self.manager.GET("get", parameters:nil, downloadProgress:nil)
+        
+        f.onSuccess{ _ in expectation.fulfill() }
+
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
-    func testHEAD {
+    func testHEAD() {
         let expectation = self.expectationWithDescription("Request should succeed")
 
-        [self.manager
-        HEAD:@"get"
-        parameters:nil
-        success:^(NSURLSessionDataTask * _Nonnull task) {
-        XCTAssertNotNil(task);
-        [expectation fulfill];
-        }
-        failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        let f = self.manager.HEAD("get", parameters:nil)
+
+        f.onSuccess{ expectation.fulfill() }
+        
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
-    func testPOST {
+    func testPOST() {
         let expectation = self.expectationWithDescription("Request should succeed")
 
-        [self.manager
-        POST:@"post"
-        parameters:@{@"key":@"value"}
-        progress:nil
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        XCTAssertTrue([responseObject[@"form"][@"key"] isEqualToString:@"value"]);
-        [expectation fulfill];
-        }
-        failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        let f = self.manager.POST("post", parameters:["key":"value"], body: nil, uploadProgress: nil)
+        
+        f.onSuccess{ expectation.fulfill() }
+        
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
+    /*
     func testPOSTWithConstructingBody {
         let expectation = self.expectationWithDescription("Request should succeed")
 
@@ -382,7 +365,7 @@ class SFNetworkingTests: XCTestCase {
         [expectation fulfill];
         }
         failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
     func testPUT {
@@ -396,7 +379,7 @@ class SFNetworkingTests: XCTestCase {
         [expectation fulfill];
         }
         failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
     func testDELETE {
@@ -410,7 +393,7 @@ class SFNetworkingTests: XCTestCase {
         [expectation fulfill];
         }
         failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
     func testPATCH {
@@ -425,7 +408,7 @@ class SFNetworkingTests: XCTestCase {
         }
         failure:nil];
         
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
     // MARK: Auth
@@ -443,7 +426,7 @@ class SFNetworkingTests: XCTestCase {
         XCTFail(@"Request should succeed");
         [expectation fulfill];
         }];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
     // MARK: Server Trust
@@ -469,7 +452,7 @@ class SFNetworkingTests: XCTestCase {
         XCTAssertEqual(error.code, NSURLErrorCancelled);
         [expectation fulfill];
         }];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
         [manager invalidateSessionCancelingTasks:YES];
     }
     
@@ -494,7 +477,7 @@ class SFNetworkingTests: XCTestCase {
         XCTAssertEqual(error.code, NSURLErrorCancelled);
         [expectation fulfill];
         }];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
         [manager invalidateSessionCancelingTasks:YES];
     }
  */

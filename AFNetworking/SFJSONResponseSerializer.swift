@@ -60,9 +60,10 @@ class SFJSONResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
                 throw SFError.FailedResponse(sc)
             }
         }
-        if data.length == 0 {
-            throw SFError.EmptyResponse
-        }
+        
+//        if data.length == 0 {
+//            throw SFError.EmptyResponse
+//        }
 
         return try jsonConverter(JSON(data: data))
     }
