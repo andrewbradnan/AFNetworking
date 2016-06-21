@@ -385,7 +385,7 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
     
 }
 
-enum SFError : ErrorType {
+public enum SFError : ErrorType {
     case BadRequest
     case InvalidResponse    // either no response or no data
     case EmptyResponse

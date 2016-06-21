@@ -80,8 +80,13 @@ class SFNetworkingTests: XCTestCase {
             let request = NSURLRequest(URL:fourofour)
             let f = self.manager.dataTaskWithRequest(request)
         
-            f.onFail(block: { (error:ErrorType) in
-                expectation.fulfill()
+            f.onFail(block: { (error:ErrorType) -> Void in
+                if case SFError.FailedResponse(let e) = error where e == 404 {
+                    expectation.fulfill()
+                }
+                else {
+                    XCTAssert(false, "bogus error")
+                }
             })
             f.onSuccess(block: { XCTAssert(false, "success unexpected") })
             f.onCancel(block: { XCTAssert(false, "cancelled") })

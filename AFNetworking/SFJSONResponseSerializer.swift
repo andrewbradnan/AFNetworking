@@ -53,10 +53,6 @@ class SFJSONResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
     
     // MARK: SFURLResponseSerialization
     func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
-        if data.length == 0 {
-            throw SFError.EmptyResponse
-        }
-        
         // check status codes
         if let http = response as? NSHTTPURLResponse {
             let sc = http.statusCode
@@ -64,6 +60,10 @@ class SFJSONResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
                 throw SFError.FailedResponse(sc)
             }
         }
+        if data.length == 0 {
+            throw SFError.EmptyResponse
+        }
+
         return try jsonConverter(JSON(data: data))
     }
 }
