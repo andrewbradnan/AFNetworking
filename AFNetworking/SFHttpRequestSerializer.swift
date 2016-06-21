@@ -195,7 +195,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
   */
         let r = try self.requestBySerializingRequest(mutableRequest, withParameters:parameters) // mutableCopy];
         
-        return r.mutableRequest!
+        return r //.mutableRequest!
     }
     
     typealias MultipartMakerBlock = SFMultipartFormData->Void
@@ -313,12 +313,22 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
         return self.HTTPMethodsEncodingParametersInURI.contains(method)
     }
     
-    func requestBySerializingRequest(request: NSURLRequest, withParameters parameters:Parameters?) throws -> NSURLRequest {
+    func requestBySerializingRequest(request: NSURLRequest, withParameters parameters:Parameters?) throws -> NSMutableURLRequest {
         if let mutableRequest = request.mutableRequest {
 
             for pair in self.headers {
                 if request.valueForHTTPHeaderField(pair.0) == nil {
                     mutableRequest.setValue(pair.1, forKey: pair.0)
+                }
+            }
+            
+            if mutableRequest.valueForHTTPHeaderField("Content-Type") == nil {
+                mutableRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField:"Content-Type")
+            }
+
+            if let params = parameters {
+                for pair in params {
+                    mutableRequest.addValue(pair.1, forHTTPHeaderField: pair.0)
                 }
             }
             

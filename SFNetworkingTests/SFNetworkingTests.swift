@@ -36,8 +36,8 @@ class SFNetworkingTests: XCTestCase {
         }
     }
  
-    let baseURL = NSURL(string:"https://httpbin.org/")
-    var manager: SFHTTPSessionManager<Void> = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"https://httpbin.org/"), converter: {_ in })
+    let baseURL = NSURL(string:"http://httpbin.org/")
+    var manager: SFHTTPSessionManager<Void> = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"http://httpbin.org/"), converter: {_ in })
     
 //    func testSharedManagerIsNotEqualToInitdManager() {
 //        XCTAssertFalse(SFHTTPSessionManager.manager === self.manager)
@@ -161,7 +161,7 @@ class SFNetworkingTests: XCTestCase {
         XCTAssertTrue(f.isCompleted)
         XCTAssertNotNil(downloadFilePath)
     }
-     */
+ 
     func testThatSerializationErrorGeneratesErrorAndNullTaskForGET() {
         let expectation = self.expectationWithDescription("Serialization should fail")
 
@@ -178,7 +178,7 @@ class SFNetworkingTests: XCTestCase {
         self.waitForExpectationsWithTimeout(10.0, handler:nil)
     }
 
-    /*
+*/
 
 //    #pragma mark - NSCoding
 //    
@@ -211,22 +211,20 @@ class SFNetworkingTests: XCTestCase {
     
     // MARK: Progress
     
-    func testDownloadProgressIsReportedForGET {
+    func testDownloadProgressIsReportedForGET() {
         let expectation = self.expectationWithDescription("Progress should equal 1.0")
 
-        [self.manager
-        GET:@"image"
-        parameters:nil
-        progress:^(NSProgress * _Nonnull downloadProgress) {
-        if (downloadProgress.fractionCompleted == 1.0) {
-        [expectation fulfill];
-        }
-        }
-        success:nil
-        failure:nil];
-        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        self.manager.GET("image", parameters:["Accept":"image/jpeg"], downloadProgress: { (downloadProgress: NSProgress) in
+            NSLog("%d completedUnitCount (bytes)", downloadProgress.completedUnitCount)
+            if downloadProgress.fractionCompleted == 1.0 {
+                expectation.fulfill()
+            }
+        })
+        
+        self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
+        /*
     func testUploadProgressIsReportedForPOST {
         NSMutableString *payload = [NSMutableString stringWithString:@"AFNetworking"];
         while ([payload lengthOfBytesUsingEncoding:NSUTF8StringEncoding] < 20000) {

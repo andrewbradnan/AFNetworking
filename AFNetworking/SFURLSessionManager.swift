@@ -321,8 +321,6 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
         
         self.session = NSURLSession(configuration: self.sessionConfiguration, delegate:self, delegateQueue:self.operationQueue)
         
-        
-        
         #if !TARGET_OS_WATCH
             self.reachabilityManager = SFNetworkReachabilityManager.sharedManager!
         #endif
@@ -389,11 +387,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
      - Parameter downloadProgressBlock: A block object to be executed when the download progress is updated. Note this block is called on the session queue, not the main queue.
      */
     public func dataTaskWithRequest(request: NSURLRequest, uploadProgress: ProgressBlock? = nil, downloadProgress:ProgressBlock? = nil) -> Future<T> {
-        var dataTask: NSURLSessionDataTask
-        
-//        url_session_manager_create_task_safely{
-            dataTask = self.session.dataTaskWithRequest(request)
-//        }
+        let dataTask = self.session.dataTaskWithRequest(request)
         
         let rt = self.addDelegateForDataTask(dataTask, uploadProgress:uploadProgress, downloadProgress:downloadProgress)
         dataTask.resume()
@@ -630,6 +624,13 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     
     public func URLSession(session: NSURLSession, downloadTask:NSURLSessionDownloadTask, didWriteData bytesWritten:Int64, totalBytesWritten:Int64, totalBytesExpectedToWrite:Int64) {
         self.downloadTaskDidWriteData?(session, downloadTask, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
+        
+        if let delegate = self.taskDelegates[downloadTask.taskIdentifier] {
+            delegate.downloadProgress.completedUnitCount = totalBytesWritten
+            delegate.downloadProgress.totalUnitCount = totalBytesExpectedToWrite
+
+            delegate.downloadProgressBlock?(delegate.downloadProgress)
+        }
     }
     
     public func URLSession(session: NSURLSession, downloadTask:NSURLSessionDownloadTask, didResumeAtOffset fileOffset:Int64, expectedTotalBytes:Int64) {
@@ -649,11 +650,14 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
 
     
     public func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
-        let delegate = self.taskDelegates[task.taskIdentifier]
-        
         // delegate may be nil when completing a task in the background
-        if (delegate != nil) {
-            delegate!.URLSession(session, task:task, didCompleteWithError:error)
+        if let delegate = self.taskDelegates[task.taskIdentifier] {
+
+            delegate.downloadProgress.completedUnitCount = Int64(delegate.mutableData!.length)
+            delegate.downloadProgress.totalUnitCount = Int64(delegate.mutableData!.length)
+            delegate.downloadProgressBlock?(delegate.downloadProgress)
+            
+            delegate.URLSession(session, task:task, didCompleteWithError:error)
             
             self.taskDelegates.removeValueForKey(task.taskIdentifier)
         }

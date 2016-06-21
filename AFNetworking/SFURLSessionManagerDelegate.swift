@@ -216,6 +216,10 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
      */
     func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData data: NSData) {
         self.mutableData!.appendData(data)
+        
+        self.downloadProgress.completedUnitCount += data.length
+        
+        self.downloadProgressBlock?(self.downloadProgress)
     }
     
     /**
@@ -320,7 +324,7 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
      Sent periodically to notify the delegate of download progress. 
      */
     func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        
+        NSLog("foo")
     }
     
     /**
