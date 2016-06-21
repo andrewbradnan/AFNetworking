@@ -7,5 +7,6 @@ platform :ios, '8.0'
 target 'SFNetworking iOS' do
     pod 'FutureKit'
     pod 'SwiftCommon'
+    pod 'SwiftyJSON'
 end
 

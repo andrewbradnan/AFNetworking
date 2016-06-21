@@ -53,7 +53,7 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
     let HTTPShouldUsePipelining = false
     
     /**
-     The network service type for created requests. `NSURLNetworkServiceTypeDefault` by default.
+     The network service type for created requests. `.NetworkServiceTypeDefault` by default.
      
      - Seealso: NSMutableURLRequest -setNetworkServiceType:
      */
@@ -76,17 +76,22 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
      
      @discussion To add or remove default request headers, use `setValue:forHTTPHeaderField:`.
      */
-    let HTTPRequestHeaders: Dictionary<String,String>
-    
+    let headers: Dictionary<String,String> = [:]
+    var observedChangedKeyPaths: Set<String> = []
     
     init() {
-        
+/*        for keyPath in SFHTTPRequestSerializerObservedKeyPaths {
+            if self.respondsToSelector(NSSelectorFromString(keyPath)) {
+                self.addObserver(self, forKeyPath:keyPath, options:NSKeyValueObservingOptions.New, context:AFHTTPRequestSerializerObserverContext)
+            }
+        }
+  */
     }
     
     /**
      Creates and returns a serializer with default configuration.
      */
-    static func serializer() -> SFHTTPRequestSerializer{}
+    static func serializer() -> SFHTTPRequestSerializer { return SFHTTPRequestSerializer() }
     
     /**
      Sets the value for the HTTP headers set in request objects made by the HTTP client. If `nil`, removes the existing value for that header.
@@ -107,7 +112,8 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
      - Returns: The value set as default for the specified header, or `nil`
      */
     func valueForHTTPHeaderField(field: NSString) -> String? {
-        
+        // TODO: implement
+        return nil
     }
     
     /**
@@ -134,7 +140,7 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
     /**
      HTTP methods for which serialized requests will encode parameters as a query string. `GET`, `HEAD`, and `DELETE` by default.
      */
-    let HTTPMethodsEncodingParametersInURI: Set<String>
+    let HTTPMethodsEncodingParametersInURI: Set<String> = ["GET", "HEAD", "DELETE"]
     
     /**
      Set the method of query string serialization according to one of the pre-defined styles.
@@ -175,6 +181,21 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
      */
     func requestWithMethod(method: String, URLString:String, parameters:[String:String]?) throws -> NSMutableURLRequest {
         
+        let url = NSURL(string:URLString)
+        
+        let mutableRequest = NSMutableURLRequest(URL:url!)
+        mutableRequest.HTTPMethod = method
+        
+/*
+        for keyPath in SFHTTPRequestSerializerObservedKeyPaths {
+            if self.observedChangedKeyPaths.contains(keyPath) {
+                mutableRequest.setValue(self.valueForKeyPath(keyPath), forKey:keyPath)
+            }
+        }
+  */
+        let r = try self.requestBySerializingRequest(mutableRequest, withParameters:parameters) // mutableCopy];
+        
+        return r.mutableRequest!
     }
     
     typealias MultipartMakerBlock = SFMultipartFormData->Void
@@ -191,8 +212,35 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
      
      - Returns: An `NSMutableURLRequest` object
      */
-    func multipartFormRequestWithMethod(method: String, URLString:String, parameters:[String:String], constructingBodyWithBlock:MultipartMakerBlock?) throws -> NSMutableURLRequest {
+    func multipartFormRequestWithMethod(method: String, URLString:String, parameters:[String:String], block:MultipartMakerBlock?) throws -> NSMutableURLRequest {
         
+        let mutableRequest = try self.requestWithMethod(method, URLString:URLString, parameters:nil)
+        
+        /*
+        let formData = SFStreamingMultipartFormData(request:mutableRequest, stringEncoding:NSUTF8StringEncoding)
+        
+        if (parameters != nil) {
+            for pair in parameters {
+                NSData *data = nil;
+                if ([pair.value isKindOfClass:[NSData class]]) {
+                    data = pair.value;
+                } else if ([pair.value isEqual:[NSNull null]]) {
+                    data = [NSData data];
+                } else {
+                    data = [[pair.value description] dataUsingEncoding:self.stringEncoding];
+                }
+                
+                if (data) {
+                    [formData appendPartWithFormData:data name:[pair.field description]];
+                }
+            }
+        }
+ 
+        block?(formData)
+        
+        return formData.requestByFinalizingMultipartFormData()
+ */
+        return mutableRequest
     }
     
     typealias CompletionBlock = NSError?->Void
@@ -207,9 +255,57 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
      
      - Seealso: https://github.com/AFNetworking/AFNetworking/issues/1398
      */
+/*
     func requestWithMultipartFormRequest(request: NSURLRequest, writingStreamContentsToFile:NSURL, completionHandler:CompletionBlock?) -> NSMutableURLRequest {
+      
+        NSInputStream *inputStream = request.HTTPBodyStream;
+        NSOutputStream *outputStream = [[NSOutputStream alloc] initWithURL:fileURL append:NO];
+        __block NSError *error = nil;
         
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+            [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+            
+            [inputStream open];
+            [outputStream open];
+            
+            while ([inputStream hasBytesAvailable] && [outputStream hasSpaceAvailable]) {
+                uint8_t buffer[1024];
+                
+                NSInteger bytesRead = [inputStream read:buffer maxLength:1024];
+                if (inputStream.streamError || bytesRead < 0) {
+                    error = inputStream.streamError;
+                    break;
+                }
+                
+                NSInteger bytesWritten = [outputStream write:buffer maxLength:(NSUInteger)bytesRead];
+                if (outputStream.streamError || bytesWritten < 0) {
+                    error = outputStream.streamError;
+                    break;
+                }
+                
+                if (bytesRead == 0 && bytesWritten == 0) {
+                    break;
+                }
+            }
+            
+            [outputStream close];
+            [inputStream close];
+            
+            if (handler) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    handler(error);
+                    });
+            }
+            });
+        
+        NSMutableURLRequest *mutableRequest = [request mutableCopy];
+        mutableRequest.HTTPBodyStream = nil;
+        
+        return mutableRequest;
+
     }
+    */
     
     private func shouldEncodeParameters(request: NSURLRequest) -> Bool {
         guard let method = request.HTTPMethod?.uppercaseString else { return false }
@@ -220,7 +316,7 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
     func requestBySerializingRequest(request: NSURLRequest, withParameters parameters:Parameters?) throws -> NSURLRequest {
         if let mutableRequest = request.mutableRequest {
 
-            for pair in self.HTTPRequestHeaders {
+            for pair in self.headers {
                 if request.valueForHTTPHeaderField(pair.0) == nil {
                     mutableRequest.setValue(pair.1, forKey: pair.0)
                 }
@@ -265,8 +361,39 @@ class SFHTTPRequestSerializer: SFURLRequestSerializer {
             throw SFError.BadRequest
         }
     }
+    
+    // MARK: NSKeyValueObserving
+/*
+    static func automaticallyNotifiesObserversForKey(key: String) -> Bool {
+        if SFHTTPRequestSerializerObservedKeyPaths.contains(key) {
+            return false
+        }
+    
+        return super.automaticallyNotifiesObserversForKey(key)
+    }
+    
+    func observeValueForKeyPath(keyPath: String, object:AnyObject?, change:Dictionary<String,AnyObject>, context:AnyObject?) {
+        if (context == AFHTTPRequestSerializerObserverContext) {
+            if change[NSKeyValueChangeNewKey] == NSNull.null {
+                self.observedChangedKeyPaths.remove(keyPath)
+            } else {
+                self.observedChangedKeyPaths.addObject(keyPath)
+            }
+        }
+    }
+*/
+    
 }
 
 enum SFError : ErrorType {
     case BadRequest
+    case InvalidResponse    // either no response or no data
+}
+
+public var SFHTTPRequestSerializerObservedKeyPaths = getSFHTTPRequestSerializerObservedKeyPaths()
+func getSFHTTPRequestSerializerObservedKeyPaths() -> [String] {
+    var rt = [String]()
+    rt = ["allowsCellularAccess"]
+    return rt
+    //, NSStringFromSelector(@selector(cachePolicy)), NSStringFromSelector(@selector(HTTPShouldHandleCookies)), NSStringFromSelector(@selector(HTTPShouldUsePipelining)), NSStringFromSelector(@selector(networkServiceType)), NSStringFromSelector(@selector(timeoutInterval))];
 }

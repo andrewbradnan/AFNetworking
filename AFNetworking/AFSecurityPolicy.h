@@ -28,6 +28,7 @@ enum AFSSLPinningMode {
     case PublicKey
     case Certificate
 }
+*/
 
 /**
  `AFSecurityPolicy` evaluates server trust against pinned X.509 certificates and public keys over secure connections.
@@ -39,7 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 protocol AFSecurityPolicy : NSObject, NSSecureCoding, NSCopying
-
+*/
 /**
  The criteria by which server trust should be evaluated against the pinned SSL certificates. Defaults to `AFSSLPinningModeNone`.
  */

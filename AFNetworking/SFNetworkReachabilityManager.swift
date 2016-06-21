@@ -18,6 +18,11 @@ enum SFNetworkReachabilityStatus : Int {
     case ReachableViaWiFi = 2
 }
 
+enum ReachabilityError: ErrorType {
+    case UnableToSetCallback
+    case UnableToSetDispatchQueue
+}
+
 func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFlags, info: UnsafeMutablePointer<Void>) {
     let mgr = Unmanaged<SFNetworkReachabilityManager>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
     
@@ -31,10 +36,10 @@ public class SFNetworkReachabilityManager {
     
     public var reachabilityChanged = Event<SCNetworkReachabilityFlags>()
     
-    private var _networkReachability: SCNetworkReachabilityRef
-    public var networkReachability: SCNetworkReachabilityRef {
+    private var _networkReachability: SCNetworkReachabilityRef?
+    public var networkReachability: SCNetworkReachabilityRef? {
         get {
-            
+            return _networkReachability
         }
     }
     var networkReachabilityStatus: SFNetworkReachabilityStatus  // TODO: CellSink
@@ -141,40 +146,42 @@ public class SFNetworkReachabilityManager {
     private var notifierRunning: Bool = false
     private var reachabilityRef: SCNetworkReachability?
     
-    public func startMonitoring() {
+    public func startMonitoring() throws {
         self.stopMonitoring()
         
         if self.networkReachability == nil {
             return
         }
         
-        let callback = { [weak self] (status: SFNetworkReachabilityStatus) in
-            if let this = self {
-                this.networkReachabilityStatus = status
-                //this.networkReachabilityStatusBlock?(status)
-            }
-        }
+//        let callback = { [weak self] (status: SFNetworkReachabilityStatus) in
+//            if let this = self {
+//                this.networkReachabilityStatus = status
+//                //this.networkReachabilityStatusBlock?(status)
+//            }
+//        }
         
         guard !notifierRunning else { return }
         
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = UnsafeMutablePointer(Unmanaged.passUnretained(self).toOpaque())
         
-        if !SCNetworkReachabilitySetCallback(reachabilityRef!, callback, &context) {
-            stopNotifier()
+        if !SCNetworkReachabilitySetCallback(reachabilityRef!,  { (_, flags, _) in
+            print(flags)
+            }, &context) {
+            stopMonitoring()
             throw ReachabilityError.UnableToSetCallback
         }
         
-        if !SCNetworkReachabilitySetDispatchQueue(reachabilityRef!, reachabilitySerialQueue) {
-            stopNotifier()
-            throw ReachabilityError.UnableToSetDispatchQueue
-        }
+//        if !SCNetworkReachabilitySetDispatchQueue(reachabilityRef!, reachabilitySerialQueue) {
+//            stopMonitoring()
+//            throw ReachabilityError.UnableToSetDispatchQueue
+//        }
         
         // Perform an intial check
-        dispatch_async(reachabilitySerialQueue) { () -> Void in
-            let flags = self.reachabilityFlags
-            self.reachabilityChanged(flags)
-        }
+        //dispatch_async(dispatch_get_main_queue()) { () -> Void in
+            //let flags = self.reachabilityFlags
+            //self.reachabilityChanged.fire(self.networkReachabilityStatus)
+        //}
         
         notifierRunning = true
     }
@@ -184,14 +191,27 @@ public class SFNetworkReachabilityManager {
             return
         }
         
-        SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes)
+        SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability!, CFRunLoopGetMain(), kCFRunLoopCommonModes)
     }
     
     
-    func localizedNetworkReachabilityStatusString() -> String {
-        return AFStringFromNetworkReachabilityStatus(self.networkReachabilityStatus)
-    }
+    //func localizedNetworkReachabilityStatusString() -> String {
+    //    return AFStringFromNetworkReachabilityStatus(self.networkReachabilityStatus)
+    // }
     
     
 }
+
+
+/*!
+	@typedef SCNetworkReachabilityCallBack
+	@discussion Type of the callback function used when the
+ reachability of a network address or name changes.
+	@param target The SCNetworkReachability reference being monitored
+ for changes.
+	@param flags The new SCNetworkReachabilityFlags representing the
+ reachability status of the network address/name.
+	@param info A C pointer to a user-specified block of data.
+ */
+//var callback = @convention(c) (SCNetworkReachability, SCNetworkReachabilityFlags, UnsafeMutablePointer<Void>) -> Void
 

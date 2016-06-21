@@ -9,6 +9,7 @@
 
 import Foundation
 import FutureKit
+import SwiftyJSON
 
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
 //
@@ -73,10 +74,8 @@ public typealias Parameters = [String:String]
 
 public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding, NSCopying*/ {
 
-    /**
-     The URL used to construct requests from relative paths in methods like `requestWithMethod:URLString:parameters:`, and the `GET` / `POST` / et al. convenience methods.
-     */
-    let baseURL: NSURL
+    /// The URL used to construct requests from relative paths in methods like `requestWithMethod:URLString:parameters:`, and the `GET` / `POST` / et al. convenience methods.  When a `baseURL` is provided, requests made with the `GET` / `POST` / et al. convenience methods can be made with relative paths.
+    let baseURL: NSURL?
     
     /**
      Requests created with `requestWithMethod:URLString:parameters:` & `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:` are constructed with a set of default headers using a parameter serialization specified by this property. By default, this is set to an instance of `SFHTTPRequestSerializer`, which serializes query string parameters for `GET`, `HEAD`, and `DELETE` requests, or otherwise URL-form-encodes HTTP message bodies.
@@ -87,19 +86,20 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
     // MARK: Initialization
     
     /// Creates and returns an `SFHTTPSessionManager` object.
-    static func manager() -> SFHTTPSessionManager {
-        return SFHTTPSessionManager<T>()
-    }
+    //static func manager() -> SFHTTPSessionManager<T> {
+    //    return SFHTTPSessionManager<T>()
+    //}
     
     /**
      Initializes an `SFHTTPSessionManager` object with the specified base URL.
      
      - Parameter url: The base URL for the HTTP client.
      */
-    convenience init(baseURL: NSURL? = nil) {
-        self.init(baseURL: baseURL, sessionConfiguration: nil)
+    public convenience init(baseURL: NSURL? = nil,converter: ConverterBlock) {
+        self.init(baseURL: baseURL, sessionConfiguration: nil, converter: converter)
     }
     
+    public typealias ConverterBlock = JSON throws -> T
     /**
      Initializes an `SFHTTPSessionManager` object with the specified base URL.
      
@@ -108,21 +108,24 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      - Parameter url: The base URL for the HTTP client.
      - Parameter configuration: The configuration used to create the managed session.
      */
-    init(baseURL:NSURL?, sessionConfiguration:NSURLSessionConfiguration?) {
+    public init(baseURL:NSURL?, sessionConfiguration:NSURLSessionConfiguration?, converter: ConverterBlock) {
         // Ensure terminal slash for baseURL path, so that NSURL +URLWithString:relativeToURL: works as expected
         if var url = baseURL {
             url = url.ensureTrailingSlash()
             self.baseURL = url;
         }
+        else {
+            self.baseURL = nil
+        }
         
         self.requestSerializer = SFHTTPRequestSerializer.serializer()
-        self.responseSerializer = SFJSONResponseSerializer.serializer()
+        
+        super.init(converter: converter)
+        
+        self.responseSerializer = SFJSONResponseSerializer<T>(converter: converter)
     }
     
     // MARK: Making HTTP Requests
-    
-    //typealias SuccessBlock = (NSURLSessionDataTask, T)->Void
-    //typealias FailureBlock = (NSURLSessionDataTask?, NSError)->Void
     
     /**
      Creates and runs an `NSURLSessionDataTask` with a `GET` request.
@@ -280,16 +283,14 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
             
             let request = try self.requestSerializer.requestWithMethod(method, URLString:urlString, parameters:parameters)
             
-            let dataTask = self.dataTaskWithRequest(request,
+            let f = self.dataTaskWithRequest(request,
                                                 uploadProgress:uploadProgress,
                                                 downloadProgress:downloadProgress)
             
-            return dataTask
+            return f
         }
         catch {
-            //failure(nil, serializationError);
+            return Future<T>(failed: error)
         }
-    
     }
-
 }

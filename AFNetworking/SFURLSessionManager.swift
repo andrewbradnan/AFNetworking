@@ -29,6 +29,7 @@
 
 import Foundation
 import FutureKit
+import SwiftyJSON
 
 /**
  `SFURLSessionManager` creates and manages an `NSURLSession` object based on a specified `NSURLSessionConfiguration` object, which conforms to `<NSURLSessionTaskDelegate>`, `<NSURLSessionDataDelegate>`, `<NSURLSessionDownloadDelegate>`, and `<NSURLSessionDelegate>`.
@@ -99,7 +100,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     
     
     /// The managed session.
-    let session: NSURLSession
+    var session: NSURLSession
     
     /// The operation queue on which delegate callbacks are run.
     public let operationQueue = NSOperationQueue()
@@ -107,42 +108,34 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     /**
      Responses sent from the server in data tasks created with `dataTaskWithRequest:success:failure:` and run using the `GET` / `POST` / et al. convenience methods are automatically validated and serialized by the response serializer. By default, this property is set to an instance of `AFJSONResponseSerializer`.
      */
-    var responseSerializer: SFHTTPResponseSerializer<T>
+    var responseSerializer: SFJSONResponseSerializer<T>
     
     // MARK: Managing Security Policy
     /**
-     The security policy used by created session to evaluate server trust for secure connections. `AFURLSessionManager` uses the `defaultPolicy` unless otherwise specified.
+     The security policy used by created session to evaluate server trust for secure connections. `SFURLSessionManager` uses the `defaultPolicy` unless otherwise specified.
      */
-    var securityPolicy: SFSecurityPolicy
+    var securityPolicy = SFSecurityPolicy.defaultPolicy
     
     #if !TARGET_OS_WATCH
-    
     // MARK: Monitoring Network Reachability
-    
-    
-    /**
-     The network reachability manager. `AFURLSessionManager` uses the `sharedManager` by default.
-     */
-    var reachabilityManager: SFNetworkReachabilityManager
+    /// The network reachability manager. `AFURLSessionManager` uses the `sharedManager` by default.
+    var reachabilityManager = SFNetworkReachabilityManager.sharedManager!
     #endif
     
     
     // MARK: Getting Session Tasks
-    
-    
-    /**
-     The data, upload, and download tasks currently run by the managed session.
-     */
-    let tasks: [NSURLSessionTask]
+
+    /// The data, upload, and download tasks currently run by the managed session.
+    let tasks: [NSURLSessionTask] = []
     
     /// The data tasks currently run by the managed session.
-    let dataTasks: [NSURLSessionDataTask]
+    let dataTasks: [NSURLSessionDataTask] = []
     
     /// The upload tasks currently run by the managed session.
-    let uploadTasks: [NSURLSessionUploadTask]
+    let uploadTasks: [NSURLSessionUploadTask] = []
     
     /// The download tasks currently run by the managed session.
-    let downloadTasks: [NSURLSessionDownloadTask]
+    let downloadTasks: [NSURLSessionDownloadTask] = []
     
     // MARK: Managing Callback Queues
     
@@ -168,15 +161,15 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
         }
     }
     
-    let uploadProgress: NSProgress
-    let downloadProgress: NSProgress
-    //@property (nonatomic, weak) AFURLSessionManager *manager;
-    
-    
+    let uploadProgress: NSProgress? = nil
+    let downloadProgress: NSProgress? = nil
     var sessionConfiguration: NSURLSessionConfiguration
-    var taskDelegates: [Int:SFURLSessionManagerTaskDelegate<T>]
-    //@property (readwrite, nonatomic, strong) NSMutableDictionary *mutableTaskDelegatesKeyedByTaskIdentifier;
-    let taskDescriptionForSessionTasks: String
+    var taskDelegates: [Int:SFURLSessionManagerTaskDelegate<T>] = [:]
+    var taskDescriptionForSessionTasks: String {
+        get {
+            return self.hashValue.description
+        }
+    }
     var lock: NSLock
     
     typealias RedirectionBlock = (NSURLSession, NSURLSessionTask, NSURLResponse, NSURLRequest)->NSURLRequest?
@@ -184,7 +177,6 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     typealias TaskNeedNewBodyStreamBlock = (NSURLSession, NSURLSessionTask)->NSInputStream?
     typealias TaskDidSendBodyDataBlock = (NSURLSession, NSURLSessionTask, Int64, Int64, Int64)->Void
     typealias DownloadTaskDidWriteDataBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64, Int64)->Void
-    
     typealias TaskDidCompleteBlock = (NSURLSession, NSURLSessionTask) throws ->Void
     typealias TaskDidReceiveResponseBlock = (NSURLSession, NSURLSessionDataTask, NSURLResponse)->NSURLSessionResponseDisposition
     typealias DataTaskDidBecomeDownloadTaskBlock = (NSURLSession, NSURLSessionDataTask, NSURLSessionDownloadTask)->Void
@@ -192,13 +184,9 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     typealias DataTaskWillCacheResponseBlock = (NSURLSession, NSURLSessionDataTask, NSCachedURLResponse)->NSCachedURLResponse
     typealias DownloadTaskDidFinishDownloadingBlock = (NSURLSession, NSURLSessionDownloadTask, NSURL)->NSURL?
     typealias DownloadTaskDidResumeBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64)->Void
-    typealias BecomeInvalidBlock = (NSURLSession, NSError) -> Void
+    typealias BecomeInvalidBlock = (NSURLSession) throws -> Void
     typealias ChallengeBlock = (NSURLSession, NSURLAuthenticationChallenge, NSURLCredential?) -> NSURLSessionAuthChallengeDisposition
     typealias NSURLSessionBlock = NSURLSession->Void
-//    typealias DownloadTaskFinishedBlock = (NSURLSession, NSURLSessionDownloadTask, NSURL)->Void
-//    typealias WriteDataBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64, Int64)->Void
-//    typealias DownloadResumed = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64)->Void
-
     /**
      Sets a block to be executed when a connection level authentication challenge has occurred, as handled by the `NSURLSessionDelegate` method `URLSession:didReceiveChallenge:completionHandler:`.
      
@@ -302,34 +290,32 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
      */
     var attemptsToRecreateUploadTasksForBackgroundSessions = false
     
-    private lazy var af_url_session_manager_completion_group = dispatch_group_create()
-    private lazy var af_url_session_manager_processing_queue = dispatch_queue_create("com.alamofire.networking.session.manager.processing", DISPATCH_QUEUE_CONCURRENT)
-    private lazy var af_url_session_manager_creation_queue = dispatch_queue_create("com.alamofire.networking.session.manager.creation", DISPATCH_QUEUE_SERIAL)
-    
     // MARK: Initialization
-    
     
     /**
      Creates and returns a manager for a session created with the specified configuration. This is the designated initializer.
      
      - Parameter configuration: The configuration used to create the managed session.
-     
-     - Returns: A manager for a newly-created session.
      */
-    init(configuration: NSURLSessionConfiguration? = nil) {
+    init(configuration: NSURLSessionConfiguration? = nil, converter: JSON throws -> T) {
         var conf = configuration
         if conf == nil {
             conf = NSURLSessionConfiguration.defaultSessionConfiguration()
         }
-        
+
         self.sessionConfiguration = conf!
+        self.session = NSURLSession(configuration: self.sessionConfiguration, delegate:nil, delegateQueue:self.operationQueue)
+        self.responseSerializer = SFJSONResponseSerializer<T>(converter: converter) //.serializer()
+        //let rs = SFJSONResponseSerializer<T>(converter: converter) //.serializer()
+        self.lock = NSLock()
+        
+        super.init()
+        
         self.operationQueue.maxConcurrentOperationCount = 1
         
         self.session = NSURLSession(configuration: self.sessionConfiguration, delegate:self, delegateQueue:self.operationQueue)
         
-        self.responseSerializer = SFJSONResponseSerializer<T>.serializer()
         
-        self.securityPolicy = SFSecurityPolicy.defaultPolicy
         
         #if !TARGET_OS_WATCH
             self.reachabilityManager = SFNetworkReachabilityManager.sharedManager!
@@ -361,7 +347,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
      
      - Parameter cancelPendingTasks: Whether or not to cancel pending tasks.
      */
-    func invalidateSessionCancelingTasks(cancelPendingTasks: Bool) {
+    public func invalidateSessionCancelingTasks(cancelPendingTasks: Bool) {
         dispatch_async(dispatch_get_main_queue(), {
             if (cancelPendingTasks) {
                 self.session.invalidateAndCancel()
@@ -396,12 +382,12 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
      - Parameter uploadProgressBlock: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
      - Parameter downloadProgressBlock: A block object to be executed when the download progress is updated. Note this block is called on the session queue, not the main queue.
      */
-    func dataTaskWithRequest(request: NSURLRequest, uploadProgress: ProgressBlock? = nil, downloadProgress:ProgressBlock? = nil) -> Future<T> {
+    public func dataTaskWithRequest(request: NSURLRequest, uploadProgress: ProgressBlock? = nil, downloadProgress:ProgressBlock? = nil) -> Future<T> {
         var dataTask: NSURLSessionDataTask
         
-        url_session_manager_create_task_safely{
+//        url_session_manager_create_task_safely{
             dataTask = self.session.dataTaskWithRequest(request)
-        }
+//        }
         
         let rt = self.addDelegateForDataTask(dataTask, uploadProgress:uploadProgress, downloadProgress:downloadProgress)
         dataTask.resume()
@@ -583,9 +569,9 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     func downloadTaskWithResumeData(resumeData: NSData, progress:ProgressBlock?, destination:TargetBlock,
                                     completionHandler:CompletionHandler?) -> NSURLSessionDownloadTask {
         var downloadTask: NSURLSessionDownloadTask
-        url_session_manager_create_task_safely({
+        //url_session_manager_create_task_safely({
             downloadTask = self.session.downloadTaskWithResumeData(resumeData)
-        })
+        //})
         
         self.addDelegateForDownloadTask(downloadTask, progress:progress, destination:destination)
         
@@ -629,7 +615,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
                     do {
                         try NSFileManager.defaultManager().moveItemAtURL(location, toURL:fileURL!)
                     }
-                    catch let e {
+                    catch _ {
                         // TODO: error
                     }
                     return
@@ -646,6 +632,31 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     
     public func URLSession(session: NSURLSession, downloadTask:NSURLSessionDownloadTask, didResumeAtOffset fileOffset:Int64, expectedTotalBytes:Int64) {
         self.downloadTaskDidResume?(session, downloadTask, fileOffset, expectedTotalBytes)
+    }
+    
+    /**
+     ## NSSessionDataDelegate.didReceiveData
+     
+     Sent when data is available for the delegate to consume.  It is assumed that the delegate will retain and not copy the data.  As the data may be discontiguous, you should use [NSData enumerateByteRangesUsingBlock:] to access it.
+     */
+    public func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData data: NSData) {
+        let delegate = self.taskDelegates[dataTask.taskIdentifier]
+        
+        delegate?.URLSession(session, dataTask:dataTask, didReceiveData:data)
+    }
+
+    
+    public func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
+        let delegate = self.taskDelegates[task.taskIdentifier]
+        
+        // delegate may be nil when completing a task in the background
+        if (delegate != nil) {
+            delegate!.URLSession(session, task:task, didCompleteWithError:error)
+            
+            self.taskDelegates.removeValueForKey(task.taskIdentifier)
+        }
+        
+        try! self.taskDidComplete?(session, task)
     }
 }
 

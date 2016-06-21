@@ -22,12 +22,12 @@ enum SFSSLPinningMode {
  */
 
 
-class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
+public class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
 {
     /**
      The criteria by which server trust should be evaluated against the pinned SSL certificates. Defaults to `.None`.
      */
-    let pinningMode: SFSSLPinningMode = .None
+    let pinningMode: SFSSLPinningMode
     
     /**
      The certificates used to evaluate server trust according to the SSL pinning mode.
@@ -84,7 +84,7 @@ class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      - Returns: The default security policy.
      */
-    static let defaultPolicy = SFSecurityPolicy()
+    public static let defaultPolicy = SFSecurityPolicy()
     
     
     // MARK: Initialization
@@ -120,7 +120,7 @@ class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      */
     func evaluateServerTrust(serverTrust: SecTrustRef, forDomain domain: String?) -> Bool
     {
-        if let d = domain {
+        if domain != nil {
             if self.allowInvalidCertificates && self.validatesDomainName && (self.pinningMode == .None || (self.pinnedCertificates.count == 0)) {
                 /* https://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/NetworkingTopics/Articles/OverridingSSLChainValidationCorrectly.html
                  According to the docs, you should only trust your provided certs for evaluation.  Pinned certificates are added to the trust. Without pinned certificates, there is nothing to evaluate against.
@@ -214,7 +214,7 @@ extension SecTrust {
     /// - seealso: AFServerTrustIsValid
     public var isValid: Bool {
         get {
-            var result: SecTrustResultType
+            var result: SecTrustResultType = 0
             SecTrustEvaluate(self, &result)
             
             return result == UInt32(kSecTrustResultUnspecified) || result == UInt32(kSecTrustResultProceed)
@@ -231,6 +231,7 @@ extension SecTrust {
                     rt.append(certificate)
                 }
             }
+            return rt
         }
     }
     

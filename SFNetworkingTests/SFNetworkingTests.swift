@@ -1,0 +1,519 @@
+//
+//  SFNetworkingTests.swift
+//  SFNetworkingTests
+//
+//  Created by Andrew Bradnan on 6/20/16.
+//  Copyright © 2016 AFNetworking. All rights reserved.
+//
+
+import XCTest
+import SFNetworking
+
+class SFNetworkingTests: XCTestCase {
+    
+    override func setUp() {
+        super.setUp()
+        self.manager = SFHTTPSessionManager<Void>(baseURL: self.baseURL, converter: {_ in })
+    }
+    
+    override func tearDown() {
+        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        self.manager.invalidateSessionCancelingTasks(true)
+
+        super.tearDown()
+    }
+    
+    func testExample() {
+        // This is an example of a functional test case.
+        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    }
+    
+    func testPerformanceExample() {
+        // This is an example of a performance test case.
+        self.measureBlock {
+            // Put the code you want to measure the time of here.
+        }
+    }
+ 
+    let baseURL = NSURL(string:"https://httpbin.org/")
+    var manager: SFHTTPSessionManager<Void> = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"https://httpbin.org/"), converter: {_ in })
+    
+//    func testSharedManagerIsNotEqualToInitdManager() {
+//        XCTAssertFalse(SFHTTPSessionManager.manager === self.manager)
+//    }
+    
+    // MARK: misc
+    
+    func testThatOperationInvokesCompletionHandlerWithResponseObjectOnSuccess() {
+    //__block id blockResponseObject = nil;
+    //__block id blockError = nil;
+    
+        let expectation = self.expectationWithDescription("Request should succeed")
+    
+        if let get = NSURL(string:"/get", relativeToURL:self.baseURL) {
+            let request = NSURLRequest(URL:get)
+            
+            let f = self.manager.dataTaskWithRequest(request)
+
+            f.onSuccess{
+                expectation.fulfill()
+            }
+            f.onFail(block: { _ in XCTAssert(false, "fail") })
+            f.onCancel(block: { XCTAssert(false, "cancelled") })
+            
+            self.waitForExpectationsWithTimeout(10.0, handler:nil)
+
+            XCTAssertTrue(f.isCompleted)
+        }
+    }
+
+    /*
+    func testThatOperationInvokesFailureCompletionBlockWithErrorOnFailure {
+        __block id blockError = nil;
+        
+        let expectation = self.expectationWithDescription("Request should succeed")
+        
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/status/404" relativeToURL:self.baseURL]];
+        NSURLSessionDataTask *task = [self.manager dataTaskWithRequest:request uploadProgress:nil downloadProgress:nil
+        completionHandler:^(NSURLResponse *response, id responseObject, NSError *error) {
+        blockError = error;
+        [expectation fulfill];
+        }];
+        
+        [task resume];
+        
+        [self waitForExpectationsWithTimeout:10.0 handler:nil];
+        
+        XCTAssertTrue(task.state == NSURLSessionTaskStateCompleted);
+        XCTAssertNotNil(blockError);
+    }
+    
+    func testThatRedirectBlockIsCalledWhen302IsEncountered {
+        __block BOOL success;
+        __block NSError *blockError = nil;
+        
+        let expectation = self.expectationWithDescription("Request should succeed")
+        
+        NSURLRequest *redirectRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:@"/redirect/1" relativeToURL:self.baseURL]];
+        NSURLSessionDataTask *redirectTask = [self.manager dataTaskWithRequest:redirectRequest uploadProgress:nil downloadProgress:nil
+        completionHandler:^(NSURLResponse *response, id responseObject, NSError *error) {
+        blockError = error;
+        [expectation fulfill];
+        }];
+        
+        [self.manager setTaskWillPerformHTTPRedirectionBlock:^NSURLRequest *(NSURLSession *session, NSURLSessionTask *task, NSURLResponse *response, NSURLRequest *request) {
+        if (response) {
+        success = YES;
+        }
+        
+        return request;
+        }];
+        
+        [redirectTask resume];
+        
+        [self waitForExpectationsWithTimeout:10.0 handler:nil];
+        
+        XCTAssertTrue(redirectTask.state == NSURLSessionTaskStateCompleted);
+        XCTAssertNil(blockError);
+        XCTAssertTrue(success);
+    }
+    
+    func testDownloadFileCompletionSpecifiesURLInCompletionWithManagerDidFinishBlock {
+        __block BOOL managerDownloadFinishedBlockExecuted = NO;
+        __block BOOL completionBlockExecuted = NO;
+        __block NSURL *downloadFilePath = nil;
+        let expectation = self.expectationWithDescription("Request should succeed")
+        
+        [self.manager setDownloadTaskDidFinishDownloadingBlock:^NSURL *(NSURLSession *session, NSURLSessionDownloadTask *downloadTask, NSURL *location) {
+        managerDownloadFinishedBlockExecuted = YES;
+        NSURL *dirURL  = [[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask] lastObject];
+        return [dirURL URLByAppendingPathComponent:@"t1.file"];
+        }];
+        
+        NSURLSessionDownloadTask *downloadTask;
+        downloadTask = [self.manager
+        downloadTaskWithRequest:[NSURLRequest requestWithURL:self.baseURL]
+        progress:nil
+        destination:nil
+        completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
+        downloadFilePath = filePath;
+        completionBlockExecuted = YES;
+        [expectation fulfill];
+        }];
+        [downloadTask resume];
+        [self waitForExpectationsWithTimeout:10.0 handler:nil];
+        XCTAssertTrue(completionBlockExecuted);
+        XCTAssertTrue(managerDownloadFinishedBlockExecuted);
+        XCTAssertNotNil(downloadFilePath);
+    }
+    
+    func testDownloadFileCompletionSpecifiesURLInCompletionBlock {
+        __block BOOL destinationBlockExecuted = NO;
+        __block BOOL completionBlockExecuted = NO;
+        __block NSURL *downloadFilePath = nil;
+        let expectation = self.expectationWithDescription("Request should succeed")
+        
+        NSURLSessionDownloadTask *downloadTask = [self.manager downloadTaskWithRequest:[NSURLRequest requestWithURL:self.baseURL]
+        progress:nil
+        destination:^NSURL *(NSURL *targetPath, NSURLResponse *response) {
+        destinationBlockExecuted = YES;
+        NSURL *dirURL  = [[[NSFileManager defaultManager] URLsForDirectory:NSLibraryDirectory inDomains:NSUserDomainMask] lastObject];
+        return [dirURL URLByAppendingPathComponent:@"t1.file"];
+        }
+        completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
+        downloadFilePath = filePath;
+        completionBlockExecuted = YES;
+        [expectation fulfill];
+        }];
+        [downloadTask resume];
+        [self waitForExpectationsWithTimeout:10.0 handler:nil];
+        XCTAssertTrue(completionBlockExecuted);
+        XCTAssertTrue(destinationBlockExecuted);
+        XCTAssertNotNil(downloadFilePath);
+    }
+    
+    func testThatSerializationErrorGeneratesErrorAndNullTaskForGET {
+        let expectation = self.expectationWithDescription("Serialization should fail")
+
+        [self.manager.requestSerializer setQueryStringSerializationWithBlock:^NSString * _Nonnull(NSURLRequest * _Nonnull request, id  _Nonnull parameters, NSError * _Nullable __autoreleasing * _Nullable error) {
+        *error = [NSError errorWithDomain:@"Custom" code:-1 userInfo:nil];
+        return @"";
+        }];
+        
+        NSURLSessionTask *nilTask;
+        nilTask = [self.manager
+        GET:@"test"
+        parameters:@{@"key":@"value"}
+        progress:nil
+        success:nil
+        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        XCTAssertNil(task);
+        [expectation fulfill];
+        }];
+        XCTAssertNil(nilTask);
+        [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    }
+    
+//    #pragma mark - NSCoding
+//    
+//    - (void)testSupportsSecureCoding {
+//    XCTAssertTrue([AFHTTPSessionManager supportsSecureCoding]);
+//    }
+//    
+//    - (void)testCanBeEncoded {
+//    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self.manager];
+//    XCTAssertNotNil(data);
+//    }
+//    
+//    - (void)testCanBeDecoded {
+//    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self.manager];
+//    AFHTTPSessionManager *newManager = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+//    XCTAssertNotNil(newManager.securityPolicy);
+//    XCTAssertNotNil(newManager.requestSerializer);
+//    XCTAssertNotNil(newManager.responseSerializer);
+//    XCTAssertNotNil(newManager.baseURL);
+//    XCTAssertNotNil(newManager.session);
+//    XCTAssertNotNil(newManager.session.configuration);
+//    }
+    
+    // MARK: NSCopying
+    
+//    - (void)testCanBeCopied {
+//    AFHTTPSessionManager *copyManager = [self.manager copy];
+//    XCTAssertNotNil(copyManager);
+//    }
+    
+    // MARK: Progress
+    
+    func testDownloadProgressIsReportedForGET {
+        let expectation = self.expectationWithDescription("Progress should equal 1.0")
+
+        [self.manager
+        GET:@"image"
+        parameters:nil
+        progress:^(NSProgress * _Nonnull downloadProgress) {
+        if (downloadProgress.fractionCompleted == 1.0) {
+        [expectation fulfill];
+        }
+        }
+        success:nil
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testUploadProgressIsReportedForPOST {
+        NSMutableString *payload = [NSMutableString stringWithString:@"AFNetworking"];
+        while ([payload lengthOfBytesUsingEncoding:NSUTF8StringEncoding] < 20000) {
+        [payload appendString:@"AFNetworking"];
+        }
+        
+        let expectation = self.expectationWithDescription("Progress should equal 1.0")
+        
+        [self.manager
+        POST:@"post"
+        parameters:payload
+        progress:^(NSProgress * _Nonnull uploadProgress) {
+        if (uploadProgress.fractionCompleted == 1.0) {
+        [expectation fulfill];
+        expectation = nil;
+        }
+        }
+        success:nil
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testUploadProgressIsReportedForStreamingPost {
+        NSMutableString *payload = [NSMutableString stringWithString:@"AFNetworking"];
+        while ([payload lengthOfBytesUsingEncoding:NSUTF8StringEncoding] < 20000) {
+        [payload appendString:@"AFNetworking"];
+        }
+        
+        let expectation = self.expectationWithDescription("Progress should equal 1.0")
+        
+        [self.manager
+        POST:@"post"
+        parameters:nil
+        constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+        [formData appendPartWithFileData:[payload dataUsingEncoding:NSUTF8StringEncoding] name:@"AFNetworking" fileName:@"AFNetworking" mimeType:@"text/html"];
+        }
+        progress:^(NSProgress * _Nonnull uploadProgress) {
+        if (uploadProgress.fractionCompleted == 1.0) {
+        [expectation fulfill];
+        expectation = nil;
+        }
+        }
+        success:nil
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    // MARK: HTTP Status Codes
+    
+    func testThatSuccessBlockIsCalledFor200 {
+        let expectation = self.expectationWithDescription("Request should succeed")
+        
+        [self.manager
+        GET:@"status/200"
+        parameters:nil
+        progress:nil
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [expectation fulfill];
+        }
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testThatFailureBlockIsCalledFor404 {
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        GET:@"status/404"
+        parameters:nil
+        progress:nil
+        success:nil
+        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nullable error) {
+        [expectation fulfill];
+        }];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testThatResponseObjectIsEmptyFor204 {
+        __block id urlResponseObject = nil;
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        GET:@"status/204"
+        parameters:nil
+        progress:nil
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        urlResponseObject = responseObject;
+        [expectation fulfill];
+        }
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        XCTAssertNil(urlResponseObject);
+    }
+    
+    // MARK: Rest Interface
+    
+    func testGET {
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        GET:@"get"
+        parameters:nil
+        progress:nil
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        XCTAssertNotNil(responseObject);
+        [expectation fulfill];
+        }
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testHEAD {
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        HEAD:@"get"
+        parameters:nil
+        success:^(NSURLSessionDataTask * _Nonnull task) {
+        XCTAssertNotNil(task);
+        [expectation fulfill];
+        }
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testPOST {
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        POST:@"post"
+        parameters:@{@"key":@"value"}
+        progress:nil
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        XCTAssertTrue([responseObject[@"form"][@"key"] isEqualToString:@"value"]);
+        [expectation fulfill];
+        }
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testPOSTWithConstructingBody {
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        POST:@"post"
+        parameters:@{@"key":@"value"}
+        constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+        [formData appendPartWithFileData:[@"Data" dataUsingEncoding:NSUTF8StringEncoding]
+        name:@"DataName"
+        fileName:@"DataFileName"
+        mimeType:@"data"];
+        }
+        progress:nil
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        XCTAssertTrue([responseObject[@"files"][@"DataName"] isEqualToString:@"Data"]);
+        XCTAssertTrue([responseObject[@"form"][@"key"] isEqualToString:@"value"]);
+        [expectation fulfill];
+        }
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testPUT {
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        PUT:@"put"
+        parameters:@{@"key":@"value"}
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        XCTAssertTrue([responseObject[@"form"][@"key"] isEqualToString:@"value"]);
+        [expectation fulfill];
+        }
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testDELETE {
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        DELETE:@"delete"
+        parameters:@{@"key":@"value"}
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        XCTAssertTrue([responseObject[@"args"][@"key"] isEqualToString:@"value"]);
+        [expectation fulfill];
+        }
+        failure:nil];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    func testPATCH {
+        let expectation = self.expectationWithDescription("Request should succeed")
+
+        [self.manager
+        PATCH:@"patch"
+        parameters:@{@"key":@"value"}
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        XCTAssertTrue([responseObject[@"form"][@"key"] isEqualToString:@"value"]);
+        [expectation fulfill];
+        }
+        failure:nil];
+        
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    // MARK: Auth
+    
+    func testHiddenBasicAuthentication {
+        let expectation = self.expectationWithDescription("Request should finish")
+        [self.manager.requestSerializer setAuthorizationHeaderFieldWithUsername:@"user" password:@"password"];
+        [self.manager
+        GET:@"hidden-basic-auth/user/password"
+        parameters:nil
+        progress:nil
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        [expectation fulfill];
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        XCTFail(@"Request should succeed");
+        [expectation fulfill];
+        }];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+    }
+    
+    // MARK: Server Trust
+    
+    func testInvalidServerTrustProducesCorrectErrorForCertificatePinning {
+        let expectation = self.expectationWithDescription("Request should fail")
+
+        NSURL *googleCertificateURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"google.com" withExtension:@"cer"];
+        NSData *googleCertificateData = [NSData dataWithContentsOfURL:googleCertificateURL];
+        AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithBaseURL:[NSURL URLWithString:@"https://apple.com/"]];
+        [manager setResponseSerializer:[AFHTTPResponseSerializer serializer]];
+        manager.securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModeCertificate withPinnedCertificates:[NSSet setWithObject:googleCertificateData]];
+        [manager
+        GET:@""
+        parameters:nil
+        progress:nil
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        XCTFail(@"Request should fail");
+        [expectation fulfill];
+        }
+        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        XCTAssertEqualObjects(error.domain, NSURLErrorDomain);
+        XCTAssertEqual(error.code, NSURLErrorCancelled);
+        [expectation fulfill];
+        }];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        [manager invalidateSessionCancelingTasks:YES];
+    }
+    
+    func testInvalidServerTrustProducesCorrectErrorForPublicKeyPinning {
+        let expectation = self.expectationWithDescription("Request should fail")
+        
+        NSURL *googleCertificateURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"google.com" withExtension:@"cer"];
+        NSData *googleCertificateData = [NSData dataWithContentsOfURL:googleCertificateURL];
+        AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithBaseURL:[NSURL URLWithString:@"https://apple.com/"]];
+        [manager setResponseSerializer:[AFHTTPResponseSerializer serializer]];
+        manager.securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModePublicKey withPinnedCertificates:[NSSet setWithObject:googleCertificateData]];
+        [manager
+        GET:@""
+        parameters:nil
+        progress:nil
+        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        XCTFail(@"Request should fail");
+        [expectation fulfill];
+        }
+        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        XCTAssertEqualObjects(error.domain, NSURLErrorDomain);
+        XCTAssertEqual(error.code, NSURLErrorCancelled);
+        [expectation fulfill];
+        }];
+        [self waitForExpectationsWithCommonTimeoutUsingHandler:nil];
+        [manager invalidateSessionCancelingTasks:YES];
+    }
+ */
+}

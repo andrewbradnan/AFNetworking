@@ -11,11 +11,10 @@ import Foundation
 import FutureKit
 
 class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate {
-    var promise: Promise<T>
+    var promise = Promise<T>()
     weak var manager: SFURLSessionManager<T>?
 
-    var mutableData: NSMutableData?
-    
+    var mutableData: NSMutableData? = NSMutableData()
     
     typealias DownloadTaskDidFinishDownloadingBlock = (NSURLSession, NSURLSessionDownloadTask, NSURL) -> NSURL?
     
@@ -38,8 +37,6 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
     // MARK: NSProgress Tracking
     
     private func setupProgressForTask(task: NSURLSessionTask) {
-        //__weak __typeof__(task) weakTask = task;
-        
         self.uploadProgress.totalUnitCount = task.countOfBytesExpectedToSend
         self.downloadProgress.totalUnitCount = task.countOfBytesExpectedToReceive
         
@@ -49,8 +46,6 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
         self.uploadProgress.pausingHandler = { [weak task] in task?.suspend() }
         if #available(iOS 9.0, *) {
             self.uploadProgress.resumingHandler = { [weak task] in task?.resume() }
-        } else {
-            // Fallback on earlier versions
         }
         
         self.downloadProgress.cancellable=true
@@ -185,9 +180,9 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
      
      This method will not be called for background upload tasks (which cannot be converted to download tasks).
      */
-    func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveResponse response: NSURLResponse, completionHandler: (NSURLSessionResponseDisposition) -> Void) {
-        
-    }
+
+//    func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveResponse response: NSURLResponse, completionHandler: (NSURLSessionResponseDisposition) -> Void) {
+//    }
     
     /**
      ## NSURLSessionDataDelegate.didBecomeDownloadTask
@@ -236,16 +231,14 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
      Sent as the last message related to a specific task.  Error may be nil, which implies that no error occurred and this task is complete.
      */
     func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
-        //__strong AFURLSessionManager *manager = self.manager;
-        //__block id responseObject = nil;
         
 //        __block NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
 //        userInfo[SFNetworkingTaskDidCompleteResponseSerializerKey] = manager.responseSerializer;
 //        
 //        //Performance Improvement from #2672
-        var data: NSData
+        var data: NSData?
         if self.mutableData != nil {
-            data = self.mutableData!.copy() as! NSData
+            data = self.mutableData!.copy() as? NSData
             self.mutableData = nil
         }
 //            data = [self.mutableData copy];
@@ -269,20 +262,25 @@ class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, N
             })
         }
         else {
-            dispatch_async(url_session_manager_processing_queue, { () -> Void in
-                do {
-                    let responseObject = try self.manager!.responseSerializer.responseObjectForResponse(task.response!, data:data)
-                    self.promise.completeWithSuccess(responseObject)
-//                    if (self.downloadFileURL) {
-//                        responseObject = self.downloadFileURL;
-//                    }
-//                    
-//                    userInfo[AFNetworkingTaskDidCompleteSerializedResponseKey] = responseObject
-                }
-                catch let e {
-                    self.promise.completeWithFail(e)
-                }
-            })
+            if let r = task.response, let d = data {
+                dispatch_async(url_session_manager_processing_queue, { () -> Void in
+                    do {
+                        let responseObject = try self.manager!.responseSerializer.responseObjectForResponse(r, data:d)
+                        self.promise.completeWithSuccess(responseObject)
+    //                    if (self.downloadFileURL) {
+    //                        responseObject = self.downloadFileURL;
+    //                    }
+    //                    
+    //                    userInfo[AFNetworkingTaskDidCompleteSerializedResponseKey] = responseObject
+                    }
+                    catch let e {
+                        self.promise.completeWithFail(e)
+                    }
+                })
+            }
+            else {
+                self.promise.completeWithFail(SFError.InvalidResponse)
+            }
         }
     }
     

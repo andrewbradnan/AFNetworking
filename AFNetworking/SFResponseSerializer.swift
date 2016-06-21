@@ -26,7 +26,7 @@ public protocol SFURLResponseSerializer /* <NSObject, NSSecureCoding, NSCopying>
      
      - Returns: The object decoded from the specified response data.
      */
-    func responseObjectForResponse(response: NSURLResponse?, data:NSData?) throws -> Element
+    func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> Element
 }
 
 
