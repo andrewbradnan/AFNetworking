@@ -122,8 +122,10 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
      - Parameter username: The HTTP basic auth username
      - Parameter password: The HTTP basic auth password
      */
-    func setAuthorizationHeaderFieldWithUsername(username: String, password:String) {
-        
+    public func setAuthorizationHeaderFieldWithUsername(username: String, password:String) {
+        let basicAuthCredentials = String(format:"%@:%@", username, password).dataUsingEncoding(NSUTF8StringEncoding)
+        let base64AuthCredentials = basicAuthCredentials!.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0))
+        self.setValue(String(format:"Basic %@", base64AuthCredentials), forHTTPHeaderField:"Authorization")
     }
     
     /**

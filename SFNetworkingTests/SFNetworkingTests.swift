@@ -367,95 +367,85 @@ class SFNetworkingTests: XCTestCase {
         failure:nil];
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
+    */
     
-    func testPUT {
+    func testPUT() {
         let expectation = self.expectationWithDescription("Request should succeed")
 
-        [self.manager
-        PUT:@"put"
-        parameters:@{@"key":@"value"}
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        XCTAssertTrue([responseObject[@"form"][@"key"] isEqualToString:@"value"]);
-        [expectation fulfill];
-        }
-        failure:nil];
+        let f = self.manager.PUT("put", parameters:["key":"value"])
+        
+        f.onSuccess{ expectation.fulfill() }
+        
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
-    func testDELETE {
+    func testDELETE() {
         let expectation = self.expectationWithDescription("Request should succeed")
 
-        [self.manager
-        DELETE:@"delete"
-        parameters:@{@"key":@"value"}
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        XCTAssertTrue([responseObject[@"args"][@"key"] isEqualToString:@"value"]);
-        [expectation fulfill];
-        }
-        failure:nil];
+        let f = self.manager.DELETE("delete", parameters:["key":"value"])
+        
+        f.onSuccess{ expectation.fulfill() }
+
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
-    func testPATCH {
+    func testPATCH() {
         let expectation = self.expectationWithDescription("Request should succeed")
 
-        [self.manager
-        PATCH:@"patch"
-        parameters:@{@"key":@"value"}
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        XCTAssertTrue([responseObject[@"form"][@"key"] isEqualToString:@"value"]);
-        [expectation fulfill];
-        }
-        failure:nil];
+        let f = self.manager.PATCH("patch", parameters:["key":"value"])
+        f.onSuccess{ expectation.fulfill() }
         
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
     // MARK: Auth
     
-    func testHiddenBasicAuthentication {
+    func testHiddenBasicAuthentication() {
         let expectation = self.expectationWithDescription("Request should finish")
-        [self.manager.requestSerializer setAuthorizationHeaderFieldWithUsername:@"user" password:@"password"];
-        [self.manager
-        GET:@"hidden-basic-auth/user/password"
-        parameters:nil
-        progress:nil
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        [expectation fulfill];
-        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        XCTFail(@"Request should succeed");
-        [expectation fulfill];
-        }];
+        
+        self.manager.requestSerializer.setAuthorizationHeaderFieldWithUsername("user", password:"password")
+        let f = self.manager.GET("hidden-basic-auth/user/password", parameters:nil, downloadProgress:nil)
+        
+        f.onSuccess{ expectation.fulfill() }
+        f.onFail{ _ in expectation.fulfill() }
+        
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
     }
     
     // MARK: Server Trust
     
-    func testInvalidServerTrustProducesCorrectErrorForCertificatePinning {
+    
+    func testInvalidServerTrustProducesCorrectErrorForCertificatePinning() {
         let expectation = self.expectationWithDescription("Request should fail")
 
-        NSURL *googleCertificateURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"google.com" withExtension:@"cer"];
-        NSData *googleCertificateData = [NSData dataWithContentsOfURL:googleCertificateURL];
-        AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithBaseURL:[NSURL URLWithString:@"https://apple.com/"]];
-        [manager setResponseSerializer:[AFHTTPResponseSerializer serializer]];
-        manager.securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModeCertificate withPinnedCertificates:[NSSet setWithObject:googleCertificateData]];
-        [manager
-        GET:@""
-        parameters:nil
-        progress:nil
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        XCTFail(@"Request should fail");
-        [expectation fulfill];
-        }
-        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        XCTAssertEqualObjects(error.domain, NSURLErrorDomain);
-        XCTAssertEqual(error.code, NSURLErrorCancelled);
-        [expectation fulfill];
-        }];
+        let googleCertificateURL = NSBundle(forClass: SFNetworkingTests.self).URLForResource("google.com", withExtension:"cer")
+        
+        let googleCertificateData = NSData(contentsOfURL: googleCertificateURL!)
+        
+        let manager = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"https://apple.com/")!, converter: { _ in })
+        
+//        [manager setResponseSerializer:[AFHTTPResponseSerializer serializer]];
+        manager.securityPolicy = SFSecurityPolicy(pinningMode: .Certificate, withPinnedCertificates:[googleCertificateData!])
+        let f = manager.GET("", parameters: nil, downloadProgress: nil)
+        
+        f.onSuccess{ XCTFail("Request should fail") }
+        f.onFail { _ in expectation.fulfill() }
+        
+//        parameters:nil
+//        progress:nil
+//        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+//        [expectation fulfill];
+//        }
+//        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+//        XCTAssertEqualObjects(error.domain, NSURLErrorDomain);
+//        XCTAssertEqual(error.code, NSURLErrorCancelled);
+//        [expectation fulfill];
+//        }];
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
-        [manager invalidateSessionCancelingTasks:YES];
+        manager.invalidateSessionCancelingTasks(true)
     }
     
+    /*
     func testInvalidServerTrustProducesCorrectErrorForPublicKeyPinning {
         let expectation = self.expectationWithDescription("Request should fail")
         

@@ -9,7 +9,7 @@
 
 import Foundation
 
-enum SFSSLPinningMode {
+public enum SFSSLPinningMode {
     case None
     case PublicKey
     case Certificate
@@ -97,7 +97,7 @@ public class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      - Returns: A new security policy.
      */
-    init(pinningMode: SFSSLPinningMode = .None, withPinnedCertificates: Set<NSData>? = SFSecurityPolicy.defaultPinnedCertificates) {
+    public init(pinningMode: SFSSLPinningMode = .None, withPinnedCertificates: Set<NSData>? = SFSecurityPolicy.defaultPinnedCertificates) {
         self.pinningMode = pinningMode
         self.pinnedCertificates = withPinnedCertificates ?? []
     }
@@ -144,13 +144,11 @@ public class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
         switch (self.pinningMode) {
         
         case .Certificate:
-//            NSMutableArray *pinnedCertificates = [NSMutableArray array];
-//            for (NSData *certificateData in self.pinnedCertificates) {
-//                [pinnedCertificates addObject:(__bridge_transfer id)SecCertificateCreateWithData(NULL, (__bridge CFDataRef)certificateData)];
-//            }
+            let array = Array<NSData>(self.pinnedCertificates)
+            let certArray = array.flatMap { SecCertificateCreateWithData(nil, $0) }
             
-            SecTrustSetAnchorCertificates(serverTrust, Array<NSData>(self.pinnedCertificates))
-            
+            SecTrustSetAnchorCertificates(serverTrust, certArray)
+
             if !serverTrust.isValid {
                 return false
             }
@@ -214,7 +212,7 @@ extension SecTrust {
     /// - seealso: AFServerTrustIsValid
     public var isValid: Bool {
         get {
-            var result: SecTrustResultType = 0
+            var result = SecTrustResultType(kSecTrustResultInvalid)
             SecTrustEvaluate(self, &result)
             
             return result == UInt32(kSecTrustResultUnspecified) || result == UInt32(kSecTrustResultProceed)

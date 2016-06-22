@@ -30,6 +30,20 @@
 		05DD374E1D18BDEE00C1B2CD /* FutureKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05DD374D1D18BDEE00C1B2CD /* FutureKit.framework */; };
 		05DD374F1D19F2E300C1B2CD /* NSURLRequest-Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05C659171D0F682700E2ADDF /* NSURLRequest-Extension.swift */; };
 		05DD37511D19F63400C1B2CD /* SwiftCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05DD37501D19F63400C1B2CD /* SwiftCommon.framework */; };
+		05DD37521D1A0D6F00C1B2CD /* adn_0.cer in Resources */ = {isa = PBXBuildFile; fileRef = 297824A01BC2D69A0041C395 /* adn_0.cer */; };
+		05DD37531D1A0D6F00C1B2CD /* adn_1.cer in Resources */ = {isa = PBXBuildFile; fileRef = 297824A11BC2D69A0041C395 /* adn_1.cer */; };
+		05DD37541D1A0D6F00C1B2CD /* adn_2.cer in Resources */ = {isa = PBXBuildFile; fileRef = 297824A21BC2D69A0041C395 /* adn_2.cer */; };
+		05DD37551D1A0D8400C1B2CD /* AddTrust_External_CA_Root.cer in Resources */ = {isa = PBXBuildFile; fileRef = 298D7C6E1BC2C88F00FD3B3E /* AddTrust_External_CA_Root.cer */; };
+		05DD37561D1A0D8400C1B2CD /* COMODO_RSA_Certification_Authority.cer in Resources */ = {isa = PBXBuildFile; fileRef = 298D7C6F1BC2C88F00FD3B3E /* COMODO_RSA_Certification_Authority.cer */; };
+		05DD37571D1A0D8400C1B2CD /* COMODO_RSA_Domain_Validation_Secure_Server_CA.cer in Resources */ = {isa = PBXBuildFile; fileRef = 298D7C701BC2C88F00FD3B3E /* COMODO_RSA_Domain_Validation_Secure_Server_CA.cer */; };
+		05DD37581D1A0D8400C1B2CD /* httpbinorg_01192017.cer in Resources */ = {isa = PBXBuildFile; fileRef = 1FE783001C58579D00A73B7C /* httpbinorg_01192017.cer */; };
+		05DD37591D1A0D8900C1B2CD /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 298D7C771BC2C88F00FD3B3E /* logo.png */; };
+		05DD375A1D1A0D9200C1B2CD /* AltName.cer in Resources */ = {isa = PBXBuildFile; fileRef = 298D7C791BC2C88F00FD3B3E /* AltName.cer */; };
+		05DD375B1D1A0DAC00C1B2CD /* Equifax_Secure_Certificate_Authority_Root.cer in Resources */ = {isa = PBXBuildFile; fileRef = 5F4323B31BF63741003B8749 /* Equifax_Secure_Certificate_Authority_Root.cer */; };
+		05DD375C1D1A0DAC00C1B2CD /* GeoTrust_Global_CA_Root.cer in Resources */ = {isa = PBXBuildFile; fileRef = 5F4323DC1BF63CCC003B8749 /* GeoTrust_Global_CA_Root.cer */; };
+		05DD375D1D1A0DAC00C1B2CD /* GeoTrust_Global_CA-cross.cer in Resources */ = {isa = PBXBuildFile; fileRef = 5F4323B41BF63741003B8749 /* GeoTrust_Global_CA-cross.cer */; };
+		05DD375E1D1A0DAC00C1B2CD /* GoogleInternetAuthorityG2.cer in Resources */ = {isa = PBXBuildFile; fileRef = 5F4323BA1BF63741003B8749 /* GoogleInternetAuthorityG2.cer */; };
+		05DD375F1D1A0DAC00C1B2CD /* google.com.cer in Resources */ = {isa = PBXBuildFile; fileRef = 5F4323B51BF63741003B8749 /* google.com.cer */; };
 		1BF9F9601C87832B00F1F35A /* AFImageResponseSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BF9F95F1C87832B00F1F35A /* AFImageResponseSerializerTests.m */; };
 		1BF9F9611C87843200F1F35A /* AFImageResponseSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BF9F95F1C87832B00F1F35A /* AFImageResponseSerializerTests.m */; };
 		1BF9F9621C87843300F1F35A /* AFImageResponseSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1BF9F95F1C87832B00F1F35A /* AFImageResponseSerializerTests.m */; };
@@ -908,6 +922,20 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05DD375E1D1A0DAC00C1B2CD /* GoogleInternetAuthorityG2.cer in Resources */,
+				05DD37551D1A0D8400C1B2CD /* AddTrust_External_CA_Root.cer in Resources */,
+				05DD375F1D1A0DAC00C1B2CD /* google.com.cer in Resources */,
+				05DD37531D1A0D6F00C1B2CD /* adn_1.cer in Resources */,
+				05DD375C1D1A0DAC00C1B2CD /* GeoTrust_Global_CA_Root.cer in Resources */,
+				05DD375D1D1A0DAC00C1B2CD /* GeoTrust_Global_CA-cross.cer in Resources */,
+				05DD37521D1A0D6F00C1B2CD /* adn_0.cer in Resources */,
+				05DD37581D1A0D8400C1B2CD /* httpbinorg_01192017.cer in Resources */,
+				05DD37591D1A0D8900C1B2CD /* logo.png in Resources */,
+				05DD375B1D1A0DAC00C1B2CD /* Equifax_Secure_Certificate_Authority_Root.cer in Resources */,
+				05DD37561D1A0D8400C1B2CD /* COMODO_RSA_Certification_Authority.cer in Resources */,
+				05DD37541D1A0D6F00C1B2CD /* adn_2.cer in Resources */,
+				05DD375A1D1A0D9200C1B2CD /* AltName.cer in Resources */,
+				05DD37571D1A0D8400C1B2CD /* COMODO_RSA_Domain_Validation_Secure_Server_CA.cer in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

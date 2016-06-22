@@ -114,7 +114,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     /**
      The security policy used by created session to evaluate server trust for secure connections. `SFURLSessionManager` uses the `defaultPolicy` unless otherwise specified.
      */
-    var securityPolicy = SFSecurityPolicy.defaultPolicy
+    public var securityPolicy = SFSecurityPolicy.defaultPolicy
     
     #if !TARGET_OS_WATCH
     // MARK: Monitoring Network Reachability
@@ -173,10 +173,10 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     var lock: NSLock
     
     public typealias BecomeInvalidBlock = (NSURLSession) throws -> Void
-    public typealias ChallengeBlock = (NSURLSession, NSURLAuthenticationChallenge, NSURLCredential?) -> NSURLSessionAuthChallengeDisposition
+    public typealias ChallengeBlock = (NSURLSession, NSURLAuthenticationChallenge, inout NSURLCredential?) -> NSURLSessionAuthChallengeDisposition
     public typealias NSURLSessionBlock = NSURLSession->Void
     public typealias RedirectionBlock = (NSURLSession, NSURLSessionTask, NSURLResponse, NSURLRequest)->NSURLRequest?
-    public typealias TaskChallengeBlock = (NSURLSession, NSURLSessionTask, NSURLAuthenticationChallenge, inout NSURLCredential?)->NSURLSessionAuthChallengeDisposition?
+    public typealias TaskChallengeBlock = (NSURLSession, NSURLSessionTask, NSURLAuthenticationChallenge, inout NSURLCredential?)->NSURLSessionAuthChallengeDisposition
     public typealias TaskNeedNewBodyStreamBlock = (NSURLSession, NSURLSessionTask)->NSInputStream?
     public typealias TaskDidSendBodyDataBlock = (NSURLSession, NSURLSessionTask, Int64, Int64, Int64)->Void
     public typealias TaskDidCompleteBlock = (NSURLSession, NSURLSessionTask) throws ->Void
@@ -666,6 +666,62 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     }
 
     
+    public func URLSession(session: NSURLSession, didReceiveChallenge challenge: NSURLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
+        var disposition = NSURLSessionAuthChallengeDisposition.PerformDefaultHandling
+        
+        var credential: NSURLCredential?
+        
+        if ((self.sessionDidReceiveAuthenticationChallenge) != nil) {
+            disposition = self.sessionDidReceiveAuthenticationChallenge!(session, challenge, &credential)
+        }
+        else {
+            if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
+                if self.securityPolicy.evaluateServerTrust(challenge.protectionSpace.serverTrust!, forDomain:challenge.protectionSpace.host) {
+                    credential = NSURLCredential(forTrust: challenge.protectionSpace.serverTrust!)
+                    if (credential != nil) {
+                        disposition = .UseCredential
+                    }
+                    else {
+                        disposition = .PerformDefaultHandling
+                    }
+                }
+                else {
+                    disposition = .CancelAuthenticationChallenge
+                }
+            }
+            else {
+                disposition = .PerformDefaultHandling
+            }
+        }
+        
+        completionHandler(disposition, credential)
+    }
+    
+    public func URLSession(session: NSURLSession, task: NSURLSessionTask, didReceiveChallenge challenge: NSURLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
+        var disposition = NSURLSessionAuthChallengeDisposition.PerformDefaultHandling
+
+        var credential: NSURLCredential?
+        
+        if (self.taskDidReceiveAuthenticationChallenge != nil) {
+            disposition = self.taskDidReceiveAuthenticationChallenge!(session, task, challenge, &credential)
+        }
+        else {
+            if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
+                if self.securityPolicy.evaluateServerTrust(challenge.protectionSpace.serverTrust!, forDomain: challenge.protectionSpace.host) {
+                    disposition = .UseCredential
+                    credential = NSURLCredential(forTrust: challenge.protectionSpace.serverTrust!)
+                }
+                else {
+                    disposition = .CancelAuthenticationChallenge
+                }
+            }
+            else {
+                disposition = .PerformDefaultHandling
+            }
+        }
+        
+        completionHandler(disposition, credential);
+    }
     public func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
         // delegate may be nil when completing a task in the background
         if let delegate = self.taskDelegates[task.taskIdentifier] {
