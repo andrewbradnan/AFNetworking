@@ -424,53 +424,49 @@ class SFNetworkingTests: XCTestCase {
         
         let manager = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"https://apple.com/")!, converter: { _ in })
         
-//        [manager setResponseSerializer:[AFHTTPResponseSerializer serializer]];
         manager.securityPolicy = SFSecurityPolicy(pinningMode: .Certificate, withPinnedCertificates:[googleCertificateData!])
         let f = manager.GET("", parameters: nil, downloadProgress: nil)
         
         f.onSuccess{ XCTFail("Request should fail") }
-        f.onFail { _ in expectation.fulfill() }
+        f.onFail { e -> Void in
+            let error = e as NSError
+            
+            XCTAssert(error.domain == NSURLErrorDomain)
+            XCTAssertEqual(error.code, NSURLErrorCancelled);
+
+            expectation.fulfill()
+        }
         
-//        parameters:nil
-//        progress:nil
-//        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-//        [expectation fulfill];
-//        }
-//        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-//        XCTAssertEqualObjects(error.domain, NSURLErrorDomain);
-//        XCTAssertEqual(error.code, NSURLErrorCancelled);
-//        [expectation fulfill];
-//        }];
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
         manager.invalidateSessionCancelingTasks(true)
     }
     
-    /*
-    func testInvalidServerTrustProducesCorrectErrorForPublicKeyPinning {
+    func testInvalidServerTrustProducesCorrectErrorForPublicKeyPinning() {
         let expectation = self.expectationWithDescription("Request should fail")
         
-        NSURL *googleCertificateURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"google.com" withExtension:@"cer"];
-        NSData *googleCertificateData = [NSData dataWithContentsOfURL:googleCertificateURL];
-        AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithBaseURL:[NSURL URLWithString:@"https://apple.com/"]];
-        [manager setResponseSerializer:[AFHTTPResponseSerializer serializer]];
-        manager.securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModePublicKey withPinnedCertificates:[NSSet setWithObject:googleCertificateData]];
-        [manager
-        GET:@""
-        parameters:nil
-        progress:nil
-        success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        XCTFail(@"Request should fail");
-        [expectation fulfill];
+        let googleCertificateURL = NSBundle(forClass: SFNetworkingTests.self).URLForResource("google.com", withExtension:"cer")
+        
+        let googleCertificateData = NSData(contentsOfURL: googleCertificateURL!)
+
+        let manager = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"https://apple.com/")!, converter: { _ in })
+
+        //[manager setResponseSerializer:[AFHTTPResponseSerializer serializer]];
+        manager.securityPolicy = SFSecurityPolicy(pinningMode: .PublicKey, withPinnedCertificates:[googleCertificateData!])
+        let f = manager.GET("", parameters:nil, downloadProgress: nil)
+
+        f.onSuccess{ XCTFail("Request should fail") }
+        f.onFail{ e -> Void in
+            
+            let error = e as NSError
+            
+            XCTAssert(error.domain == NSURLErrorDomain)
+            XCTAssertEqual(error.code, NSURLErrorCancelled);
+            expectation.fulfill()
         }
-        failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        XCTAssertEqualObjects(error.domain, NSURLErrorDomain);
-        XCTAssertEqual(error.code, NSURLErrorCancelled);
-        [expectation fulfill];
-        }];
+
         self.waitForExpectationsWithTimeout(10.0, handler: nil)
-        [manager invalidateSessionCancelingTasks:YES];
+        manager.invalidateSessionCancelingTasks(true)
     }
- */
 }
 
 enum TestError: ErrorType {
