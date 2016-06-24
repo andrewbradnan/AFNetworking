@@ -8,5 +8,6 @@ target 'SFNetworking iOS' do
     pod 'FutureKit'
     pod 'SwiftCommon'
     pod 'SwiftyJSON'
+    pod 'SWXMLHash'
 end
 
