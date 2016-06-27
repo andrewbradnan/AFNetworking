@@ -403,7 +403,7 @@ public enum SFError : ErrorType {
     case BadRequest
     case InvalidResponse        // either no response or no data
     case EmptyResponse
-    case FailedResponse(Int)    // statusCode
+    case FailedResponse(Int,String)    // statusCode
     case NoLocation             // no NSURL saved
 }
 

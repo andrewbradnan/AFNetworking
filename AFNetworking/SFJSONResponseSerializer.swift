@@ -9,6 +9,7 @@
 
 import Foundation
 import SwiftyJSON
+import SWXMLHash
 
 /**
  `SFJSONResponseSerializer` is a subclass of `SFHTTPResponseSerializer` that validates and decodes JSON responses.
@@ -57,14 +58,16 @@ class SFJSONResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
         if let http = response as? NSHTTPURLResponse {
             let sc = http.statusCode
             if !self.acceptableStatusCodes.contains(sc) {
-                throw SFError.FailedResponse(sc)
+                throw SFError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
             }
+
+/*            if let ct = http.allHeaderFields["ContentType" as NSObject] as? String {
+                if ct == "text/xml" {
+                    let xml = SWXMLHash.parse(data)
+                }
+            }*/
         }
         
-//        if data.length == 0 {
-//            throw SFError.EmptyResponse
-//        }
-
         return try jsonConverter(JSON(data: data))
     }
 }
