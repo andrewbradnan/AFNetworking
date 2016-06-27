@@ -9,7 +9,7 @@
 
 import Foundation
 import SwiftyJSON
-import SWXMLHash
+//import SWXMLHash
 
 /**
  `SFJSONResponseSerializer` is a subclass of `SFHTTPResponseSerializer` that validates and decodes JSON responses.
