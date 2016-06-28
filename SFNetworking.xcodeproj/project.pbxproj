@@ -19,6 +19,7 @@
 		058EF1B91D022A8900D5D425 /* SFURLSessionManagerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058EF1B81D022A8900D5D425 /* SFURLSessionManagerDelegate.swift */; };
 		058EF1BC1D02320E00D5D425 /* SFHTTPSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058EF1BB1D02320E00D5D425 /* SFHTTPSessionManager.swift */; };
 		058EF1C01D023B5F00D5D425 /* SFHttpRequestSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058EF1BF1D023B5F00D5D425 /* SFHttpRequestSerializer.swift */; };
+		059373611D230F5C00ED2517 /* XMLResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 059373601D230F5C00ED2517 /* XMLResponseSerializer.swift */; };
 		05C659141D0F41F300E2ADDF /* SFHTTPResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05512F271D07319100C3DCB9 /* SFHTTPResponseSerializer.swift */; };
 		05C659151D0F420700E2ADDF /* SFResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05512F251D072FB700C3DCB9 /* SFResponseSerializer.swift */; };
 		05C659161D0F4B4500E2ADDF /* SFURLRequestSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 058EF1BD1D0239F800D5D425 /* SFURLRequestSerializer.swift */; };
@@ -230,6 +231,7 @@
 		058EF1BB1D02320E00D5D425 /* SFHTTPSessionManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFHTTPSessionManager.swift; sourceTree = "<group>"; };
 		058EF1BD1D0239F800D5D425 /* SFURLRequestSerializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFURLRequestSerializer.swift; sourceTree = "<group>"; };
 		058EF1BF1D023B5F00D5D425 /* SFHttpRequestSerializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFHttpRequestSerializer.swift; sourceTree = "<group>"; };
+		059373601D230F5C00ED2517 /* XMLResponseSerializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = XMLResponseSerializer.swift; sourceTree = "<group>"; };
 		05C659171D0F682700E2ADDF /* NSURLRequest-Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSURLRequest-Extension.swift"; sourceTree = "<group>"; };
 		05C659191D107E4300E2ADDF /* SFJSONResponseSerializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SFJSONResponseSerializer.swift; sourceTree = "<group>"; };
 		05DD373F1D18AD1D00C1B2CD /* SFNetworkingTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SFNetworkingTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -576,6 +578,7 @@
 				05512F251D072FB700C3DCB9 /* SFResponseSerializer.swift */,
 				05512F271D07319100C3DCB9 /* SFHTTPResponseSerializer.swift */,
 				05C659191D107E4300E2ADDF /* SFJSONResponseSerializer.swift */,
+				059373601D230F5C00ED2517 /* XMLResponseSerializer.swift */,
 				051C3AB01D04BEB000D1B8D6 /* String-Extension.swift */,
 				0519664C1D04F5C20051201A /* NSURL-Extension.swift */,
 				05512F1E1D062DF500C3DCB9 /* SFBridging.h */,
@@ -1169,6 +1172,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				059373611D230F5C00ED2517 /* XMLResponseSerializer.swift in Sources */,
 				05DD374F1D19F2E300C1B2CD /* NSURLRequest-Extension.swift in Sources */,
 				05C6591A1D107E4300E2ADDF /* SFJSONResponseSerializer.swift in Sources */,
 				05512F241D072D7500C3DCB9 /* SFMultipartFormData.swift in Sources */,
@@ -1665,6 +1669,7 @@
 				05DD37491D18AD1D00C1B2CD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2987B0BA1BC408A200179A4C /* Build configuration list for PBXNativeTarget "SFNetworking tvOS" */ = {
 			isa = XCConfigurationList;

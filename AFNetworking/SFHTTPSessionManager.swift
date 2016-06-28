@@ -278,7 +278,7 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
             return f
         }
         catch {
-            return Future<T>(fail: error)
+            return Future<T>(failed: error)
         }
     }
 }

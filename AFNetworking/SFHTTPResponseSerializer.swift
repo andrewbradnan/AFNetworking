@@ -50,6 +50,14 @@ public class SFHTTPResponseSerializer<T> : SFURLResponseSerializer  {
      */
     var acceptableContentTypes: Set<String> = []
     
+    public func checkContentType(response: NSHTTPURLResponse) {
+        if let ct = response.allHeaderFields["Content-Type" as NSObject] as? String {
+            if !self.acceptableContentTypes.contains(ct) {
+                fatalError("bad type")
+            }
+        }
+    }
+    
     public func responseObjectForResponse(response: NSURLResponse, data: NSData) throws -> T {
         
         return try converter(data)

@@ -61,11 +61,7 @@ class SFJSONResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
                 throw SFError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
             }
 
-/*            if let ct = http.allHeaderFields["ContentType" as NSObject] as? String {
-                if ct == "text/xml" {
-                    let xml = SWXMLHash.parse(data)
-                }
-            }*/
+            self.checkContentType(http)
         }
         
         return try jsonConverter(JSON(data: data))
