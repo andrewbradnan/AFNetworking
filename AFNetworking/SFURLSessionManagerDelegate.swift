@@ -10,11 +10,11 @@
 import Foundation
 import FutureKit
 
-class SFURLSessionManagerTaskDelegate<T> : NSObject, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate {
+class SFURLSessionManagerTaskDelegate<T, RS : SFURLResponseSerializer where T == RS.Element> : NSObject, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate {
     var promise = Promise<T>()
     public var filePromise: Promise<NSURL>?
     
-    weak var manager: SFURLSessionManager<T>?
+    weak var manager: SFURLSessionManager<T, RS>?
 
     var mutableData: NSMutableData? = NSMutableData()
     

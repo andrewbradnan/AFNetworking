@@ -72,7 +72,7 @@ import SwiftyJSON
 
 public typealias Parameters = [String:String]
 
-public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding, NSCopying*/ {
+public class SFHTTPSessionManager<T, RS : SFURLResponseSerializer where T == RS.Element> : SFURLSessionManager<T, RS> /*, NSSecureCoding, NSCopying*/ {
 
     /// The URL used to construct requests from relative paths in methods like `requestWithMethod:URLString:parameters:`, and the `GET` / `POST` / et al. convenience methods.  When a `baseURL` is provided, requests made with the `GET` / `POST` / et al. convenience methods can be made with relative paths.
     let baseURL: NSURL?
@@ -95,8 +95,8 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      
      - Parameter url: The base URL for the HTTP client.
      */
-    public convenience init(baseURL: NSURL? = nil,converter: ConverterBlock) {
-        self.init(baseURL: baseURL, sessionConfiguration: nil, converter: converter)
+    public convenience init(baseURL: NSURL? = nil, rs: RS) {
+        self.init(baseURL: baseURL, sessionConfiguration: nil, rs: rs)
     }
     
     public typealias ConverterBlock = JSON throws -> T
@@ -108,7 +108,7 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
      - Parameter url: The base URL for the HTTP client.
      - Parameter configuration: The configuration used to create the managed session.
      */
-    public init(baseURL:NSURL?, sessionConfiguration:NSURLSessionConfiguration?, converter: ConverterBlock) {
+    public init(baseURL:NSURL?, sessionConfiguration:NSURLSessionConfiguration?, rs: RS) {
         // Ensure terminal slash for baseURL path, so that NSURL +URLWithString:relativeToURL: works as expected
         if var url = baseURL {
             url = url.ensureTrailingSlash()
@@ -120,9 +120,9 @@ public class SFHTTPSessionManager<T> : SFURLSessionManager<T> /*, NSSecureCoding
         
         self.requestSerializer = SFHTTPRequestSerializer.serializer()
         
-        super.init(converter: converter)
+        super.init(rs: rs)
         
-        self.responseSerializer = SFJSONResponseSerializer<T>(converter: converter)
+        //self.responseSerializer = SFJSONResponseSerializer<T, RS>(converter: converter)
     }
     
     // MARK: Making HTTP Requests

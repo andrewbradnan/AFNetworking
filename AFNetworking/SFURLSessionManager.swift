@@ -96,7 +96,7 @@ var url_session_manager_processing_queue = dispatch_queue_create("com.alamofire.
 
 let SFMaximumNumberOfAttemptsToRecreateBackgroundSessionUploadTask = 3
 
-public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate /* , NSSecureCoding, NSCopying*/ {
+public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer where T == ResponseSerializer.Element> : NSObject, NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate /* , NSSecureCoding, NSCopying*/ {
     
     
     /// The managed session.
@@ -108,7 +108,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     /**
      Responses sent from the server in data tasks created with `dataTaskWithRequest:success:failure:` and run using the `GET` / `POST` / et al. convenience methods are automatically validated and serialized by the response serializer. By default, this property is set to an instance of `AFJSONResponseSerializer`.
      */
-    var responseSerializer: SFJSONResponseSerializer<T>
+    public var responseSerializer: ResponseSerializer
     
     // MARK: Managing Security Policy
     /**
@@ -164,7 +164,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     let uploadProgress: NSProgress? = nil
     let downloadProgress: NSProgress? = nil
     var sessionConfiguration: NSURLSessionConfiguration
-    var taskDelegates: [Int:SFURLSessionManagerTaskDelegate<T>] = [:]
+    var taskDelegates: [Int:SFURLSessionManagerTaskDelegate<T,ResponseSerializer>] = [:]
     var taskDescriptionForSessionTasks: String {
         get {
             return self.hashValue.description
@@ -303,7 +303,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
      
      - Parameter configuration: The configuration used to create the managed session.
      */
-    init(configuration: NSURLSessionConfiguration? = nil, converter: JSON throws -> T) {
+    init(configuration: NSURLSessionConfiguration? = nil, rs: ResponseSerializer) {
         var conf = configuration
         if conf == nil {
             conf = NSURLSessionConfiguration.defaultSessionConfiguration()
@@ -311,8 +311,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
 
         self.sessionConfiguration = conf!
         self.session = NSURLSession(configuration: self.sessionConfiguration, delegate:nil, delegateQueue:self.operationQueue)
-        self.responseSerializer = SFJSONResponseSerializer<T>(converter: converter) //.serializer()
-        //let rs = SFJSONResponseSerializer<T>(converter: converter) //.serializer()
+        self.responseSerializer = rs
         self.lock = NSLock()
         
         super.init()
@@ -397,7 +396,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     
     func addDelegateForDataTask(dataTask: NSURLSessionDataTask, uploadProgress:ProgressBlock?, downloadProgress:ProgressBlock?) -> Future<T>
     {
-        let delegate = SFURLSessionManagerTaskDelegate<T>()
+        let delegate = SFURLSessionManagerTaskDelegate<T, ResponseSerializer>()
         delegate.manager = self
         //delegate.completionHandler = completionHandler
     
@@ -415,7 +414,7 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     func addDelegateForUploadTask(uploadTask: NSURLSessionUploadTask, progress:ProgressBlock?) -> Future<T>
     //completionHandler:(void (^)(NSURLResponse *response, id responseObject, NSError *error))completionHandler
     {
-        let delegate = SFURLSessionManagerTaskDelegate<T>()
+        let delegate = SFURLSessionManagerTaskDelegate<T, ResponseSerializer>()
         delegate.manager = self
         //delegate.completionHandler = completionHandler;
     
@@ -428,9 +427,9 @@ public class SFURLSessionManager<T> : NSObject, NSURLSessionDelegate, NSURLSessi
     }
     
     func addDelegateForDownloadTask(downloadTask: NSURLSessionDownloadTask, progress: ProgressBlock?,
-    destination:SFURLSessionManager<T>.TargetBlock?) -> Future<NSURL>
+    destination:SFURLSessionManager<T,ResponseSerializer>.TargetBlock?) -> Future<NSURL>
     {
-        let delegate = SFURLSessionManagerTaskDelegate<T>()
+        let delegate = SFURLSessionManagerTaskDelegate<T, ResponseSerializer>()
         delegate.filePromise = Promise<NSURL>()
         delegate.manager = self
     
