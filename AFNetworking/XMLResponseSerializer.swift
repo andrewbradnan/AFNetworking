@@ -17,11 +17,11 @@ import SWXMLHash
  
  - `text/xml`
  */
-class XMLResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
+public class XMLResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
     
     typealias Converter = XMLIndexer throws -> T
     
-    init(converter: Converter) {
+    public init(converter: Converter) {
         self.xmlConverter = converter
         super.init(converter: { return $0 })
         self.acceptableContentTypes = ["text/xml"]
