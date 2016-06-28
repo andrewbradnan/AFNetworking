@@ -324,10 +324,6 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
                 }
             }
             
-            if mutableRequest.valueForHTTPHeaderField("Content-Type") == nil {
-                mutableRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField:"Content-Type")
-            }
-
             if let params = parameters {
                 for pair in params {
                     mutableRequest.addValue(pair.1, forHTTPHeaderField: pair.0)
