@@ -16,5 +16,6 @@ Pod::Spec.new do |s|
   s.dependency 'FutureKit'
   s.dependency 'SwiftyJSON'
   s.dependency 'SwiftCommon'
+  s.dependency 'SWXMLHash'
 
 end

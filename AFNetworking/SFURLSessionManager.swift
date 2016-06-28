@@ -775,13 +775,5 @@ let SFNetworkingTaskDidCompleteErrorKey = "com.alamofire.networking.task.complet
 
 
 func url_session_manager_create_task_safely(block: dispatch_block_t) {
-    if #available(iOS 8.0, *) {
-        block()
-    }
-    else {
-        // Fix of bug
-        // Open Radar:http://openradar.appspot.com/radar?id=5871104061079552 (status: Fixed in iOS8)
-        // Issue about:https://github.com/AFNetworking/AFNetworking/issues/2093
-        dispatch_sync(url_session_manager_creation_queue, block)
-    }
+    block()
 }
