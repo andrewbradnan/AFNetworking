@@ -43,20 +43,12 @@ public class SFHTTPResponseSerializer<T> : SFURLResponseSerializer  {
      
      See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
      */
-    var acceptableStatusCodes = Set<Int>()
+    public var acceptableStatusCodes = Set<Int>()
     
     /**
      The acceptable MIME types for responses. When non-`nil`, responses with a `Content-Type` with MIME types that do not intersect with the set will result in an error during validation.
      */
-    var acceptableContentTypes: Set<String> = []
-    
-    public func checkContentType(response: NSHTTPURLResponse) {
-        if let ct = response.allHeaderFields["Content-Type" as NSObject] as? String {
-            if !self.acceptableContentTypes.contains(ct) {
-                fatalError("bad type")
-            }
-        }
-    }
+    public var acceptableContentTypes: Set<String> = []
     
     public func responseObjectForResponse(response: NSURLResponse, data: NSData) throws -> T {
         

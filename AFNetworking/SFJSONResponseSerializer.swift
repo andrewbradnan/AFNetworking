@@ -20,13 +20,25 @@ import SwiftyJSON
  - `text/json`
  - `text/javascript`
  */
-class SFJSONResponseSerializer<T> : SFURLResponseSerializer {
-    typealias Element = T
+public class SFJSONResponseSerializer<T> : SFURLResponseSerializer {
+    public typealias Element = T
     typealias JSONConverter = JSON throws -> T
+    
+    /**
+     The acceptable HTTP status codes for responses. When non-`nil`, responses with status codes not contained by the set will result in an error during validation.
+     
+     See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+     */
+    public var acceptableStatusCodes = Set<Int>()
+    
+    /**
+     The acceptable MIME types for responses. When non-`nil`, responses with a `Content-Type` with MIME types that do not intersect with the set will result in an error during validation.
+     */
+    public var acceptableContentTypes: Set<String> = []
     
     init(converter: JSON throws -> T) {
         self.jsonConverter = converter
-//        self.acceptableContentTypes = ["application/json", "text/json", "text/javascript"]
+        self.acceptableContentTypes = ["application/json", "text/json", "text/javascript"]
     }
 
     var jsonConverter: JSONConverter
@@ -52,16 +64,12 @@ class SFJSONResponseSerializer<T> : SFURLResponseSerializer {
     }
     
     // MARK: SFURLResponseSerialization
-    func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
+    public func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
         // check status codes
-//        if let http = response as? NSHTTPURLResponse {
-//            let sc = http.statusCode
-//            if !self.acceptableStatusCodes.contains(sc) {
-//                throw SFError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
-//            }
-//
-//            self.checkContentType(http)
-//        }
+        if let http = response as? NSHTTPURLResponse {
+            try self.checkStatus(http, data: data)
+            self.checkContentType(http)
+        }
         
         return try jsonConverter(JSON(data: data))
     }

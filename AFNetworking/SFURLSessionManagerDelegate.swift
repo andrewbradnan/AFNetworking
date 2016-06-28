@@ -12,7 +12,7 @@ import FutureKit
 
 class SFURLSessionManagerTaskDelegate<T, RS : SFURLResponseSerializer where T == RS.Element> : NSObject, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate {
     var promise = Promise<T>()
-    public var filePromise: Promise<NSURL>?
+    internal var filePromise: Promise<NSURL>?
     
     weak var manager: SFURLSessionManager<T, RS>?
 
