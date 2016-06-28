@@ -19,7 +19,7 @@ import SWXMLHash
  */
 public class XMLResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
     
-    typealias Converter = XMLIndexer throws -> T
+    public typealias Converter = XMLIndexer throws -> T
     
     public init(converter: Converter) {
         self.xmlConverter = converter
