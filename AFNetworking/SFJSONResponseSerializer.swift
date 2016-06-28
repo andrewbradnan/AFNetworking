@@ -20,14 +20,13 @@ import SwiftyJSON
  - `text/json`
  - `text/javascript`
  */
-class SFJSONResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
-
+class SFJSONResponseSerializer<T> : SFURLResponseSerializer {
+    typealias Element = T
     typealias JSONConverter = JSON throws -> T
     
     init(converter: JSON throws -> T) {
         self.jsonConverter = converter
-        super.init(converter: { return $0 })
-        self.acceptableContentTypes = ["application/json", "text/json", "text/javascript"]
+//        self.acceptableContentTypes = ["application/json", "text/json", "text/javascript"]
     }
 
     var jsonConverter: JSONConverter
@@ -55,14 +54,14 @@ class SFJSONResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
     // MARK: SFURLResponseSerialization
     func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
         // check status codes
-        if let http = response as? NSHTTPURLResponse {
-            let sc = http.statusCode
-            if !self.acceptableStatusCodes.contains(sc) {
-                throw SFError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
-            }
-
-            self.checkContentType(http)
-        }
+//        if let http = response as? NSHTTPURLResponse {
+//            let sc = http.statusCode
+//            if !self.acceptableStatusCodes.contains(sc) {
+//                throw SFError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
+//            }
+//
+//            self.checkContentType(http)
+//        }
         
         return try jsonConverter(JSON(data: data))
     }
