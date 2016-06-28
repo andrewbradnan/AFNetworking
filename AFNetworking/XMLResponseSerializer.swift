@@ -17,29 +17,29 @@ import SWXMLHash
  
  - `text/xml`
  */
-public class XMLResponseSerializer<T> : SFHTTPResponseSerializer<NSData> {
-    
+public class XMLResponseSerializer<T> : SFURLResponseSerializer {
+    public typealias Element = T
     public typealias Converter = XMLIndexer throws -> T
     
     public init(converter: Converter) {
         self.xmlConverter = converter
-        super.init(converter: { return $0 })
-        self.acceptableContentTypes = ["text/xml"]
+//        super.init(converter: { return $0 })
+//        self.acceptableContentTypes = ["text/xml"]
     }
     
     var xmlConverter: Converter
     
     // MARK: SFURLResponseSerialization
-    func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
+    public func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
         // check status codes
-        if let http = response as? NSHTTPURLResponse {
-            let sc = http.statusCode
-            if !self.acceptableStatusCodes.contains(sc) {
-                throw SFError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
-            }
-            
-            self.checkContentType(http)
-        }
+//        if let http = response as? NSHTTPURLResponse {
+//            let sc = http.statusCode
+//            if !self.acceptableStatusCodes.contains(sc) {
+//                throw SFError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
+//            }
+//            
+//            self.checkContentType(http)
+//        }
         
         let xml = SWXMLHash.parse(data)
         return try xmlConverter(xml)
