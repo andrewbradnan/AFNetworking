@@ -36,7 +36,7 @@ public class SFJSONResponseSerializer<T> : SFURLResponseSerializer {
      */
     public var acceptableContentTypes: Set<String> = []
     
-    init(converter: JSON throws -> T) {
+    public init(converter: JSON throws -> T) {
         self.jsonConverter = converter
         self.acceptableContentTypes = ["application/json", "text/json", "text/javascript"]
     }
