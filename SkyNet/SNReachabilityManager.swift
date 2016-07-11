@@ -24,8 +24,8 @@ enum ReachabilityError: ErrorType {
 }
 
 func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFlags, info: UnsafeMutablePointer<Void>) {
-    let mgr = UnsafeMutablePointer<SNReachabilityManager>(info).memory
-    //let mgr: UnsafeMutablePointer<SNReachabilityManager> = bridge(info)
+    //let mgr = UnsafeMutablePointer<SNReachabilityManager>(info).memory
+    let mgr: SNReachabilityManager = bridge(info)
     
     dispatch_async(dispatch_get_main_queue()) {
         mgr.reachabilityChanged.fire(flags)
