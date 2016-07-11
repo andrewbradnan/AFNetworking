@@ -166,9 +166,8 @@ public class SNReachabilityManager {
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = UnsafeMutablePointer(Unmanaged.passUnretained(self).toOpaque())
         
-        if !SCNetworkReachabilitySetCallback(networkReachability!,  { (_, flags, _) in
-            print(flags)
-            }, &context) {
+        if !SCNetworkReachabilitySetCallback(networkReachability!,  callback //{ (_, flags, _) in print(flags) }
+            , &context) {
             stopMonitoring()
             throw ReachabilityError.UnableToSetCallback
         }
