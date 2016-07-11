@@ -143,6 +143,7 @@ public class SNReachabilityManager {
         }
     }
     
+    private let reachabilitySerialQueue = dispatch_queue_create("com.phyn.reachability", DISPATCH_QUEUE_SERIAL)
     private var notifierRunning: Bool = false
     //private var reachabilityRef: SCNetworkReachability?
     
@@ -172,10 +173,10 @@ public class SNReachabilityManager {
             throw ReachabilityError.UnableToSetCallback
         }
         
-//        if !SCNetworkReachabilitySetDispatchQueue(reachabilityRef!, reachabilitySerialQueue) {
-//            stopMonitoring()
-//            throw ReachabilityError.UnableToSetDispatchQueue
-//        }
+        if !SCNetworkReachabilitySetDispatchQueue(networkReachability!, self.reachabilitySerialQueue) {
+            stopMonitoring()
+            throw ReachabilityError.UnableToSetDispatchQueue
+        }
         
         // Perform an intial check
         //dispatch_async(dispatch_get_main_queue()) { () -> Void in
@@ -184,6 +185,13 @@ public class SNReachabilityManager {
         //}
         
         notifierRunning = true
+
+        var flags : SCNetworkReachabilityFlags = []
+        
+        if SCNetworkReachabilityGetFlags(networkReachability!, &flags) == false {
+            return
+        }
+        self.reachabilityChanged.fire(flags)
     }
     
     func stopMonitoring() {
