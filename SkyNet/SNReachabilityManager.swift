@@ -25,6 +25,7 @@ enum ReachabilityError: ErrorType {
 
 func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFlags, info: UnsafeMutablePointer<Void>) {
     let mgr = UnsafeMutablePointer<SNReachabilityManager>(info).memory
+    //let mgr: UnsafeMutablePointer<SNReachabilityManager> = bridge(info)
     
     dispatch_async(dispatch_get_main_queue()) {
         mgr.reachabilityChanged.fire(flags)
@@ -164,7 +165,7 @@ public class SNReachabilityManager {
         guard !notifierRunning else { return }
         
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
-        context.info = UnsafeMutablePointer(Unmanaged.passUnretained(self).toOpaque())
+        context.info = bridge(self)
         
         if !SCNetworkReachabilitySetCallback(networkReachability!,  callback //{ (_, flags, _) in print(flags) }
             , &context) {
@@ -222,3 +223,13 @@ public class SNReachabilityManager {
  */
 //var callback = @convention(c) (SCNetworkReachability, SCNetworkReachabilityFlags, UnsafeMutablePointer<Void>) -> Void
 
+
+func bridge<T : AnyObject>(obj : T) -> UnsafeMutablePointer<Void> {
+    return UnsafeMutablePointer(Unmanaged.passUnretained(obj).toOpaque())
+    // return unsafeAddressOf(obj) // ***
+}
+
+func bridge<T : AnyObject>(ptr : UnsafeMutablePointer<Void>) -> T {
+    return Unmanaged<T>.fromOpaque(COpaquePointer(ptr)).takeUnretainedValue()
+    // return unsafeBitCast(ptr, T.self) // ***
+}
