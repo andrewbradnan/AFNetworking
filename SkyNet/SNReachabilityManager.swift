@@ -1,17 +1,17 @@
 /**
- # SFNetworkReachabilityManager.swift
-## SFNetworking
+ # SNNetworkReachabilityManager.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/7/16
- - Copyright: Copyright © 2016 SFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 import SystemConfiguration
 import SwiftCommon
 
-enum SFNetworkReachabilityStatus : Int {
+enum SNReachabilityStatus : Int {
     case Unknown          = -1
     case NotReachable     = 0
     case ReachableViaWWAN = 1
@@ -24,7 +24,7 @@ enum ReachabilityError: ErrorType {
 }
 
 func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFlags, info: UnsafeMutablePointer<Void>) {
-    let mgr = Unmanaged<SFNetworkReachabilityManager>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
+    let mgr = Unmanaged<SNReachabilityManager>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
     
     dispatch_async(dispatch_get_main_queue()) {
         mgr.reachabilityChanged.fire(flags)
@@ -32,7 +32,7 @@ func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFl
 }
 
 
-public class SFNetworkReachabilityManager {
+public class SNReachabilityManager {
     
     public var reachabilityChanged = Event<SCNetworkReachabilityFlags>()
     
@@ -42,10 +42,10 @@ public class SFNetworkReachabilityManager {
             return _networkReachability
         }
     }
-    var networkReachabilityStatus: SFNetworkReachabilityStatus  // TODO: CellSink
-    //var networkReachabilityStatusBlock: SFNetworkReachabilityStatusBlock    // TODO: Event
+    var networkReachabilityStatus: SNReachabilityStatus  // TODO: CellSink
+    //var networkReachabilityStatusBlock: SNReachabilityStatusBlock    // TODO: Event
     
-    public static let sharedManager = SFNetworkReachabilityManager.manager()
+    public static let sharedManager = SNReachabilityManager.manager()
     
     /*
      func isConnectionAvailble()->Bool{
@@ -64,17 +64,17 @@ public class SFNetworkReachabilityManager {
      return (isReachable && !needsConnection)
      }
      */
-    public static func managerForDomain(domain: String) -> SFNetworkReachabilityManager? {
-        var rt: SFNetworkReachabilityManager?
+    public static func managerForDomain(domain: String) -> SNReachabilityManager? {
+        var rt: SNReachabilityManager?
         
         if let reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, domain) {
-            rt = SFNetworkReachabilityManager(reachability:reachability)
+            rt = SNReachabilityManager(reachability:reachability)
         }
         return rt
     }
     
     /*
-     public static func managerForAddress(address: String, port: String? = nil) -> SFNetworkReachabilityManager {
+     public static func managerForAddress(address: String, port: String? = nil) -> SNReachabilityManager {
      var hints = addrinfo(
      ai_flags: 0,
      ai_family: AF_UNSPEC,
@@ -90,11 +90,11 @@ public class SFNetworkReachabilityManager {
      let error = getaddrinfo(address, port ?? "", &hints, &result)
      
      let reachability = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, addrinfo)
-     return SFNetworkReachabilityManager(reachability:reachability)
+     return SNReachabilityManager(reachability:reachability)
      }
      */
     
-     static func manager() -> SFNetworkReachabilityManager? {
+     static func manager() -> SNReachabilityManager? {
         var zeroAddress = sockaddr_in()
         zeroAddress.sin_len = UInt8(sizeofValue(zeroAddress))
         zeroAddress.sin_family = sa_family_t(AF_INET)
@@ -105,7 +105,7 @@ public class SFNetworkReachabilityManager {
             return nil
         }
         
-        return SFNetworkReachabilityManager(reachability: defaultRouteReachability)
+        return SNReachabilityManager(reachability: defaultRouteReachability)
         
 //        var flags : SCNetworkReachabilityFlags = []
 //        if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
@@ -144,7 +144,7 @@ public class SFNetworkReachabilityManager {
     }
     
     private var notifierRunning: Bool = false
-    private var reachabilityRef: SCNetworkReachability?
+    //private var reachabilityRef: SCNetworkReachability?
     
     public func startMonitoring() throws {
         self.stopMonitoring()
@@ -153,7 +153,7 @@ public class SFNetworkReachabilityManager {
             return
         }
         
-//        let callback = { [weak self] (status: SFNetworkReachabilityStatus) in
+//        let callback = { [weak self] (status: SNReachabilityStatus) in
 //            if let this = self {
 //                this.networkReachabilityStatus = status
 //                //this.networkReachabilityStatusBlock?(status)
@@ -165,7 +165,7 @@ public class SFNetworkReachabilityManager {
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = UnsafeMutablePointer(Unmanaged.passUnretained(self).toOpaque())
         
-        if !SCNetworkReachabilitySetCallback(reachabilityRef!,  { (_, flags, _) in
+        if !SCNetworkReachabilitySetCallback(networkReachability!,  { (_, flags, _) in
             print(flags)
             }, &context) {
             stopMonitoring()

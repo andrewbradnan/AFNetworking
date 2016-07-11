@@ -1,20 +1,20 @@
 /**
- # SFHTTPResponseSerializer.swift
- ## SFNetworking
+ # SNHTTPResponseSerializer.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/7/16
- - Copyright: Copyright © 2016 SFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 
 /**
- `SFHTTPResponseSerializer` conforms to the `SFURLRequestSerialization` & `SFURLResponseSerialization` protocols, offering a concrete base implementation of query string / URL form-encoded parameter serialization and default request headers, as well as response status code and content type validation.
+ `SNHTTPResponseSerializer` conforms to the `SNURLRequestSerialization` & `SNURLResponseSerialization` protocols, offering a concrete base implementation of query string / URL form-encoded parameter serialization and default request headers, as well as response status code and content type validation.
  
- Any request or response serializer dealing with HTTP is encouraged to subclass `SFHTTPResponseSerializer` in order to ensure consistent default behavior.
+ Any request or response serializer dealing with HTTP is encouraged to subclass `SNHTTPResponseSerializer` in order to ensure consistent default behavior.
  */
-public class SFHTTPResponseSerializer<T> : SFURLResponseSerializer  {
+public class SNHTTPResponseSerializer<T> : SNURLResponseSerializer  {
     public typealias Element = T
     
     typealias ConverterBlock = NSData throws -> T
@@ -34,7 +34,7 @@ public class SFHTTPResponseSerializer<T> : SFURLResponseSerializer  {
     let stringEncoding: NSStringEncoding = NSUTF8StringEncoding
     
     /// Creates and returns a serializer with default configuration.
-    //public static func serializer() -> SFHTTPResponseSerializer { return SFHTTPResponseSerializer() }
+    //public static func serializer() -> SNHTTPResponseSerializer { return SNHTTPResponseSerializer() }
     
     // MARK: Configuring Response Serialization
     

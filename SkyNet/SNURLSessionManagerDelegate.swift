@@ -1,20 +1,20 @@
 /**
- # SFURLSessionManagerDelegate.swift
-## SFNetworking
+ # SNURLSessionManagerDelegate.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/3/16
- - Copyright: Copyright © 2016 SFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 import FutureKit
 
-class SFURLSessionManagerTaskDelegate<T, RS : SFURLResponseSerializer where T == RS.Element> : NSObject, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate {
+class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T == RS.Element> : NSObject, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate {
     var promise = Promise<T>()
     internal var filePromise: Promise<NSURL>?
     
-    weak var manager: SFURLSessionManager<T, RS>?
+    weak var manager: SNURLSessionManager<T, RS>?
 
     var mutableData: NSMutableData? = NSMutableData()
     
@@ -239,7 +239,7 @@ class SFURLSessionManagerTaskDelegate<T, RS : SFURLResponseSerializer where T ==
     func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
         
 //        __block NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
-//        userInfo[SFNetworkingTaskDidCompleteResponseSerializerKey] = manager.responseSerializer;
+//        userInfo[SNNetworkingTaskDidCompleteResponseSerializerKey] = manager.responseSerializer;
 //        
 //        //Performance Improvement from #2672
         var data: NSData?
@@ -253,15 +253,15 @@ class SFURLSessionManagerTaskDelegate<T, RS : SFURLResponseSerializer where T ==
 //        }
 //        
 //        if (self.downloadFileURL) {
-//            userInfo[SFNetworkingTaskDidCompleteAssetPathKey] = self.downloadFileURL
+//            userInfo[SNNetworkingTaskDidCompleteAssetPathKey] = self.downloadFileURL
 //        } else if (data) {
-//            userInfo[SFNetworkingTaskDidCompleteResponseDataKey] = data
+//            userInfo[SNNetworkingTaskDidCompleteResponseDataKey] = data
 //        }
         
         
         // TODO: Check for NSURLErrorCancel
         if let error = error {
-            // userInfo[SFNetworkingTaskDidCompleteErrorKey] = error
+            // userInfo[SNNetworkingTaskDidCompleteErrorKey] = error
             
             dispatch_group_async(manager!.completionGroup, manager!.completionQueue, {
                 self.promise.completeWithFail(error)
@@ -285,7 +285,7 @@ class SFURLSessionManagerTaskDelegate<T, RS : SFURLResponseSerializer where T ==
                 })
             }
             else {
-                self.promise.completeWithFail(SFError.InvalidResponse)
+                self.promise.completeWithFail(SNError.InvalidResponse)
             }
         }
     }
@@ -313,7 +313,7 @@ class SFURLSessionManagerTaskDelegate<T, RS : SFURLResponseSerializer where T ==
         
         self.downloadFileURL = self.downloadFileURL ?? location
         
-        guard let url = self.downloadFileURL else { self.filePromise!.completeWithFail(SFError.NoLocation); return }
+        guard let url = self.downloadFileURL else { self.filePromise!.completeWithFail(SNError.NoLocation); return }
         
         self.filePromise!.completeWithSuccess(url)
     }

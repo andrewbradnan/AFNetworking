@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:/Volumes/Development/dev/SFNetworking/SFNetworking.xcodeproj">
+      location = "group:/Volumes/Development/dev/SFNetworking/SkyNet.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Example/AFNetworking Example.xcodeproj">

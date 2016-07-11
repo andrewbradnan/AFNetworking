@@ -1,10 +1,10 @@
 /**
- # SFURLSessionManager.swift
- ## SFNetworking
+ # SNURLSessionManager.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/3/16
- - Copyright:   Copyright © 2016 AFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
@@ -32,15 +32,15 @@ import FutureKit
 import SwiftyJSON
 
 /**
- `SFURLSessionManager` creates and manages an `NSURLSession` object based on a specified `NSURLSessionConfiguration` object, which conforms to `<NSURLSessionTaskDelegate>`, `<NSURLSessionDataDelegate>`, `<NSURLSessionDownloadDelegate>`, and `<NSURLSessionDelegate>`.
+ `SNURLSessionManager` creates and manages an `NSURLSession` object based on a specified `NSURLSessionConfiguration` object, which conforms to `<NSURLSessionTaskDelegate>`, `<NSURLSessionDataDelegate>`, `<NSURLSessionDownloadDelegate>`, and `<NSURLSessionDelegate>`.
  
  ## Subclassing Notes
  
- This is the base class for `SFHTTPSessionManager`, which adds functionality specific to making HTTP requests. If you are looking to extend `AFURLSessionManager` specifically for HTTP, consider subclassing `AFHTTPSessionManager` instead.
+ This is the base class for `SNHTTPSessionManager`, which adds functionality specific to making HTTP requests. If you are looking to extend `SNURLSessionManager` specifically for HTTP, consider subclassing `AFHTTPSessionManager` instead.
  
  ## NSURLSession & NSURLSessionTask Delegate Methods
  
- `SFURLSessionManager` implements the following delegate methods:
+ `SNURLSessionManager` implements the following delegate methods:
  
  ### `NSURLSessionDelegate`
  
@@ -94,9 +94,9 @@ var url_session_manager_creation_queue = dispatch_queue_create("com.alamofire.ne
 var url_session_manager_completion_queue = dispatch_queue_create("com.alamofire.networking.session.manager.completion", DISPATCH_QUEUE_CONCURRENT)
 var url_session_manager_processing_queue = dispatch_queue_create("com.alamofire.networking.session.manager.processing", DISPATCH_QUEUE_CONCURRENT)
 
-let SFMaximumNumberOfAttemptsToRecreateBackgroundSessionUploadTask = 3
+let SNMaximumNumberOfAttemptsToRecreateBackgroundSessionUploadTask = 3
 
-public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer where T == ResponseSerializer.Element> : NSObject, NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate /* , NSSecureCoding, NSCopying*/ {
+public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer where T == ResponseSerializer.Element> : NSObject, NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate /* , NSSecureCoding, NSCopying*/ {
     
     
     /// The managed session.
@@ -112,14 +112,14 @@ public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer
     
     // MARK: Managing Security Policy
     /**
-     The security policy used by created session to evaluate server trust for secure connections. `SFURLSessionManager` uses the `defaultPolicy` unless otherwise specified.
+     The security policy used by created session to evaluate server trust for secure connections. `SNURLSessionManager` uses the `defaultPolicy` unless otherwise specified.
      */
-    public var securityPolicy = SFSecurityPolicy.defaultPolicy
+    public var securityPolicy = SNSecurityPolicy.defaultPolicy
     
     #if !TARGET_OS_WATCH
     // MARK: Monitoring Network Reachability
-    /// The network reachability manager. `AFURLSessionManager` uses the `sharedManager` by default.
-    var reachabilityManager = SFNetworkReachabilityManager.sharedManager!
+    /// The network reachability manager. `SNURLSessionManager` uses the `sharedManager` by default.
+    var reachabilityManager = SNReachabilityManager.sharedManager!
     #endif
     
     
@@ -164,7 +164,7 @@ public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer
     let uploadProgress: NSProgress? = nil
     let downloadProgress: NSProgress? = nil
     var sessionConfiguration: NSURLSessionConfiguration
-    var taskDelegates: [Int:SFURLSessionManagerTaskDelegate<T,ResponseSerializer>] = [:]
+    var taskDelegates: [Int:SNURLSessionManagerTaskDelegate<T,ResponseSerializer>] = [:]
     var taskDescriptionForSessionTasks: String {
         get {
             return self.hashValue.description
@@ -321,11 +321,11 @@ public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer
         self.session = NSURLSession(configuration: self.sessionConfiguration, delegate:self, delegateQueue:self.operationQueue)
         
         #if !TARGET_OS_WATCH
-            self.reachabilityManager = SFNetworkReachabilityManager.sharedManager!
+            self.reachabilityManager = SNReachabilityManager.sharedManager!
         #endif
         
         self.lock = NSLock()
-        self.lock.name = "SFURLSessionManagerLockName"
+        self.lock.name = "SNURLSessionManagerLockName"
         
         self.session.getTasksWithCompletionHandler{ (dataTasks: [NSURLSessionDataTask], uploadTasks: [NSURLSessionUploadTask], downloadTasks:[NSURLSessionDownloadTask]) -> Void in
             for task in dataTasks {
@@ -396,7 +396,7 @@ public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer
     
     func addDelegateForDataTask(dataTask: NSURLSessionDataTask, uploadProgress:ProgressBlock?, downloadProgress:ProgressBlock?) -> Future<T>
     {
-        let delegate = SFURLSessionManagerTaskDelegate<T, ResponseSerializer>()
+        let delegate = SNURLSessionManagerTaskDelegate<T, ResponseSerializer>()
         delegate.manager = self
         //delegate.completionHandler = completionHandler
     
@@ -414,7 +414,7 @@ public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer
     func addDelegateForUploadTask(uploadTask: NSURLSessionUploadTask, progress:ProgressBlock?) -> Future<T>
     //completionHandler:(void (^)(NSURLResponse *response, id responseObject, NSError *error))completionHandler
     {
-        let delegate = SFURLSessionManagerTaskDelegate<T, ResponseSerializer>()
+        let delegate = SNURLSessionManagerTaskDelegate<T, ResponseSerializer>()
         delegate.manager = self
         //delegate.completionHandler = completionHandler;
     
@@ -427,9 +427,9 @@ public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer
     }
     
     func addDelegateForDownloadTask(downloadTask: NSURLSessionDownloadTask, progress: ProgressBlock?,
-    destination:SFURLSessionManager<T,ResponseSerializer>.TargetBlock?) -> Future<NSURL>
+    destination:SNURLSessionManager<T,ResponseSerializer>.TargetBlock?) -> Future<NSURL>
     {
-        let delegate = SFURLSessionManagerTaskDelegate<T, ResponseSerializer>()
+        let delegate = SNURLSessionManagerTaskDelegate<T, ResponseSerializer>()
         delegate.filePromise = Promise<NSURL>()
         delegate.manager = self
     
@@ -470,7 +470,7 @@ public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer
         if (uploadTask == nil) {
             if self.attemptsToRecreateUploadTasksForBackgroundSessions {
                 if (self.session.configuration.identifier != nil) {
-                    for _ in 0..<SFMaximumNumberOfAttemptsToRecreateBackgroundSessionUploadTask {
+                    for _ in 0..<SNMaximumNumberOfAttemptsToRecreateBackgroundSessionUploadTask {
                         uploadTask = self.session.uploadTaskWithRequest(request, fromFile:fileURL)
                         if uploadTask != nil { break }
                     }
@@ -743,34 +743,34 @@ public class SFURLSessionManager<T, ResponseSerializer : SFURLResponseSerializer
 
 
 /// Posted when a task resumes.
-let SFNetworkingTaskDidResumeNotification = "com.alamofire.networking.task.resume"
+let SNNetworkingTaskDidResumeNotification = "com.alamofire.networking.task.resume"
 
 /// Posted when a task finishes executing. Includes a userInfo dictionary with additional information about the task.
-let SFNetworkingTaskDidCompleteNotification = "com.alamofire.networking.task.complete"
+let SNNetworkingTaskDidCompleteNotification = "com.alamofire.networking.task.complete"
 
 /// Posted when a task suspends its execution.
-let SFNetworkingTaskDidSuspendNotification = "com.alamofire.networking.task.suspend"
+let SNNetworkingTaskDidSuspendNotification = "com.alamofire.networking.task.suspend"
 
 /// Posted when a session is invalidated.
-let SFURLSessionDidInvalidateNotification = "com.alamofire.networking.session.invalidate"
+let SNURLSessionDidInvalidateNotification = "com.alamofire.networking.session.invalidate"
 
 /// Posted when a session download task encountered an error when moving the temporary download file to a specified destination.
-let SFURLSessionDownloadTaskDidFailToMoveFileNotification = "com.alamofire.networking.session.download.file-manager-error"
+let SNURLSessionDownloadTaskDidFailToMoveFileNotification = "com.alamofire.networking.session.download.file-manager-error"
 
 /// The raw response data of the task. Included in the userInfo dictionary of the `AFNetworkingTaskDidCompleteNotification` if response data exists for the task.
-let SFNetworkingTaskDidCompleteResponseDataKey = "com.alamofire.networking.complete.finish.responsedata"
+let SNNetworkingTaskDidCompleteResponseDataKey = "com.alamofire.networking.complete.finish.responsedata"
 
 /// The serialized response object of the task. Included in the userInfo dictionary of the `AFNetworkingTaskDidCompleteNotification` if the response was serialized.
-let SFNetworkingTaskDidCompleteSerializedResponseKey = "com.alamofire.networking.task.complete.serializedresponse"
+let SNNetworkingTaskDidCompleteSerializedResponseKey = "com.alamofire.networking.task.complete.serializedresponse"
 
 /// The response serializer used to serialize the response. Included in the userInfo dictionary of the `AFNetworkingTaskDidCompleteNotification` if the task has an associated response serializer.
-let SFNetworkingTaskDidCompleteResponseSerializerKey = "com.alamofire.networking.task.complete.responseserializer"
+let SNNetworkingTaskDidCompleteResponseSerializerKey = "com.alamofire.networking.task.complete.responseserializer"
 
 /// The file path associated with the download task. Included in the userInfo dictionary of the `AFNetworkingTaskDidCompleteNotification` if an the response data has been stored directly to disk.
-let SFNetworkingTaskDidCompleteAssetPathKey = "com.alamofire.networking.task.complete.assetpath"
+let SNNetworkingTaskDidCompleteAssetPathKey = "com.alamofire.networking.task.complete.assetpath"
 
 /// Any error associated with the task, or the serialization of the response. Included in the userInfo dictionary of the `AFNetworkingTaskDidCompleteNotification` if an error exists.
-let SFNetworkingTaskDidCompleteErrorKey = "com.alamofire.networking.task.complete.error"
+let SNNetworkingTaskDidCompleteErrorKey = "com.alamofire.networking.task.complete.error"
 
 
 func url_session_manager_create_task_safely(block: dispatch_block_t) {

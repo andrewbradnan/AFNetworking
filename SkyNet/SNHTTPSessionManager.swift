@@ -1,10 +1,10 @@
 /**
- # SFHTTPSessionManager.swift
- ##  SFNetworking
+ # SNHTTPSessionManager.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/3/16
- - Copyright:   Copyright © 2016 SFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
@@ -32,13 +32,13 @@ import SwiftyJSON
 // THE SOFTWARE.
 
 /**
- `SFHTTPSessionManager` is a subclass of `SFURLSessionManager` with convenience methods for making HTTP requests. When a `baseURL` is provided, requests made with the `GET` / `POST` / et al. convenience methods can be made with relative paths.
+ `SNHTTPSessionManager` is a subclass of `SNURLSessionManager` with convenience methods for making HTTP requests. When a `baseURL` is provided, requests made with the `GET` / `POST` / et al. convenience methods can be made with relative paths.
  
  ## Subclassing Notes
  
- Developers targeting iOS 7 or Mac OS X 10.9 or later that deal extensively with a web service are encouraged to subclass `SFHTTPSessionManager`, providing a class method that returns a shared singleton object on which authentication and other configuration can be shared across the application.
+ Developers targeting iOS 7 or Mac OS X 10.9 or later that deal extensively with a web service are encouraged to subclass `SNHTTPSessionManager`, providing a class method that returns a shared singleton object on which authentication and other configuration can be shared across the application.
  
- For developers targeting iOS 6 or Mac OS X 10.8 or earlier, `SFHTTPRequestOperationManager` may be used to similar effect.
+ For developers targeting iOS 6 or Mac OS X 10.8 or earlier, `SNHTTPRequestOperationManager` may be used to similar effect.
  
  ## Methods to Override
  
@@ -46,9 +46,9 @@ import SwiftyJSON
  
  ## Serialization
  
- Requests created by an HTTP client will contain default headers and encode parameters according to the `requestSerializer` property, which is an object conforming to `<SFURLRequestSerialization>`.
+ Requests created by an HTTP client will contain default headers and encode parameters according to the `requestSerializer` property, which is an object conforming to `<SNURLRequestSerialization>`.
  
- Responses received from the server are automatically validated and serialized by the `responseSerializers` property, which is an object conforming to `<SFURLResponseSerialization>`
+ Responses received from the server are automatically validated and serialized by the `responseSerializers` property, which is an object conforming to `<SNURLResponseSerialization>`
  
  ## URL Construction Using Relative Paths
  
@@ -72,26 +72,26 @@ import SwiftyJSON
 
 public typealias Parameters = [String:String]
 
-public class SFHTTPSessionManager<T, RS : SFURLResponseSerializer where T == RS.Element> : SFURLSessionManager<T, RS> /*, NSSecureCoding, NSCopying*/ {
+public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.Element> : SNURLSessionManager<T, RS> /*, NSSecureCoding, NSCopying*/ {
 
     /// The URL used to construct requests from relative paths in methods like `requestWithMethod:URLString:parameters:`, and the `GET` / `POST` / et al. convenience methods.  When a `baseURL` is provided, requests made with the `GET` / `POST` / et al. convenience methods can be made with relative paths.
     let baseURL: NSURL?
     
     /**
-     Requests created with `requestWithMethod:URLString:parameters:` & `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:` are constructed with a set of default headers using a parameter serialization specified by this property. By default, this is set to an instance of `SFHTTPRequestSerializer`, which serializes query string parameters for `GET`, `HEAD`, and `DELETE` requests, or otherwise URL-form-encodes HTTP message bodies.
+     Requests created with `requestWithMethod:URLString:parameters:` & `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:` are constructed with a set of default headers using a parameter serialization specified by this property. By default, this is set to an instance of `SNHTTPRequestSerializer`, which serializes query string parameters for `GET`, `HEAD`, and `DELETE` requests, or otherwise URL-form-encodes HTTP message bodies.
      
      */
-    public var requestSerializer: SFHTTPRequestSerializer
+    public var requestSerializer: SNHTTPRequestSerializer
     
     // MARK: Initialization
     
-    /// Creates and returns an `SFHTTPSessionManager` object.
-    //static func manager() -> SFHTTPSessionManager<T> {
-    //    return SFHTTPSessionManager<T>()
+    /// Creates and returns an `SNHTTPSessionManager` object.
+    //static func manager() -> SNHTTPSessionManager<T> {
+    //    return SNHTTPSessionManager<T>()
     //}
     
     /**
-     Initializes an `SFHTTPSessionManager` object with the specified base URL.
+     Initializes an `SNHTTPSessionManager` object with the specified base URL.
      
      - Parameter url: The base URL for the HTTP client.
      */
@@ -101,7 +101,7 @@ public class SFHTTPSessionManager<T, RS : SFURLResponseSerializer where T == RS.
     
     public typealias ConverterBlock = JSON throws -> T
     /**
-     Initializes an `SFHTTPSessionManager` object with the specified base URL.
+     Initializes an `SNHTTPSessionManager` object with the specified base URL.
      
      This is the designated initializer.
      
@@ -118,11 +118,11 @@ public class SFHTTPSessionManager<T, RS : SFURLResponseSerializer where T == RS.
             self.baseURL = nil
         }
         
-        self.requestSerializer = SFHTTPRequestSerializer.serializer()
+        self.requestSerializer = SNHTTPRequestSerializer.serializer()
         
         super.init(rs: rs)
         
-        //self.responseSerializer = SFJSONResponseSerializer<T, RS>(converter: converter)
+        //self.responseSerializer = SNJSONResponseSerializer<T, RS>(converter: converter)
     }
     
     // MARK: Making HTTP Requests
@@ -188,21 +188,21 @@ public class SFHTTPSessionManager<T, RS : SFURLResponseSerializer where T == RS.
      
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
-     - Parameter block: A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `SFMultipartFormData` protocol.
+     - Parameter block: A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `SNMultipartFormData` protocol.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
     
     //DEPRECATED_ATTRIBUTE;
-    //    func POST(url: String, parameters:P?, constructingBodyWithBlock:(nullable void (^)(id <SFMultipartFormData> formData))block
+    //    func POST(url: String, parameters:P?, constructingBodyWithBlock:(nullable void (^)(id <SNMultipartFormData> formData))block
     
-    typealias MultiPartMakerBlock = SFMultipartFormData -> Void
+    typealias MultiPartMakerBlock = SNMultipartFormData -> Void
     /**
      Creates and runs an `NSURLSessionDataTask` with a multipart `POST` request.
      
      - Parameter URLString: The URL string used to create the request URL.
      - Parameter parameters: The parameters to be encoded according to the client request serializer.
-     - Parameter block: A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `SFMultipartFormData` protocol.
+     - Parameter block: A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `SNMultipartFormData` protocol.
      - Parameter uploadProgress: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
      
      - seealso: -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:

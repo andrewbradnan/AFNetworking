@@ -1,20 +1,21 @@
 //
-//  SFNetworkingTests.swift
-//  SFNetworkingTests
+//  SNNetworkingTests.swift
+//  SkyNetTests
 //
 //  Created by Andrew Bradnan on 6/20/16.
-//  Copyright © 2016 AFNetworking. All rights reserved.
+//  Copyright © 2016 SkyNet. All rights reserved.
 //
 
 import XCTest
-import SFNetworking
+import SkyNet
 import FutureKit
 
-class SFNetworkingTests: XCTestCase {
+class SNNetworkingTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        self.manager = SFHTTPSessionManager<Void>(baseURL: self.baseURL, converter: {_ in })
+        let rs = SNXMLResponseSerializer<Void>(converter: {_ in })
+        self.manager = SNHTTPSessionManager<Void, SNXMLResponseSerializer<Void>>(baseURL: self.baseURL, rs: rs)
     }
     
     override func tearDown() {
@@ -37,10 +38,11 @@ class SFNetworkingTests: XCTestCase {
     }
  
     let baseURL = NSURL(string:"http://httpbin.org/")
-    var manager: SFHTTPSessionManager<Void> = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"http://httpbin.org/"), converter: {_ in })
+    var manager: SNHTTPSessionManager<Void, SNXMLResponseSerializer<Void>> = SNHTTPSessionManager<Void, SNXMLResponseSerializer<Void>>(baseURL: NSURL(string:"http://httpbin.org/"), rs: XMLResponseSerializer<Void>(converter: {_ in })
+    )
     
 //    func testSharedManagerIsNotEqualToInitdManager() {
-//        XCTAssertFalse(SFHTTPSessionManager.manager === self.manager)
+//        XCTAssertFalse(SNHTTPSessionManager.manager === self.manager)
 //    }
     
     // MARK: misc
@@ -82,7 +84,7 @@ class SFNetworkingTests: XCTestCase {
             let f = self.manager.dataTaskWithRequest(request)
         
             f.onFail(block: { (error:ErrorType) -> Void in
-                if case SFError.FailedResponse(let e) = error where e == 404 {
+                if case SNError.FailedResponse(let e) = error where e == 404 {
                     expectation.fulfill()
                 }
                 else {
@@ -226,9 +228,9 @@ class SFNetworkingTests: XCTestCase {
  
     
     func testUploadProgressIsReportedForPOST() {
-        var payload = "SFNetworking"
+        var payload = "SNNetworking"
         while payload.length < 20000 {
-            payload += "SFNetworking"
+            payload += "SNNetworking"
         }
         
         let expectation = self.expectationWithDescription("Progress should equal 1.0")
@@ -247,9 +249,9 @@ class SFNetworkingTests: XCTestCase {
     */
 /*
      func testUploadProgressIsReportedForStreamingPost() {
-        var payload = "SFNetworking"
+        var payload = "SkyNet"
         while payload.length < 20000 {
-            payload += "SFNetworking"
+            payload += "SkyNet"
         }
         
         let expectation = self.expectationWithDescription("Progress should equal 1.0")
@@ -418,13 +420,13 @@ class SFNetworkingTests: XCTestCase {
     func testInvalidServerTrustProducesCorrectErrorForCertificatePinning() {
         let expectation = self.expectationWithDescription("Request should fail")
 
-        let googleCertificateURL = NSBundle(forClass: SFNetworkingTests.self).URLForResource("google.com", withExtension:"cer")
+        let googleCertificateURL = NSBundle(forClass: SNNetworkingTests.self).URLForResource("google.com", withExtension:"cer")
         
         let googleCertificateData = NSData(contentsOfURL: googleCertificateURL!)
         
-        let manager = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"https://apple.com/")!, converter: { _ in })
+        let manager = SNHTTPSessionManager<Void>(baseURL: NSURL(string:"https://apple.com/")!, converter: { _ in })
         
-        manager.securityPolicy = SFSecurityPolicy(pinningMode: .Certificate, withPinnedCertificates:[googleCertificateData!])
+        manager.securityPolicy = SNSecurityPolicy(pinningMode: .Certificate, withPinnedCertificates:[googleCertificateData!])
         let f = manager.GET("", parameters: nil, downloadProgress: nil)
         
         f.onSuccess{ XCTFail("Request should fail") }
@@ -444,14 +446,14 @@ class SFNetworkingTests: XCTestCase {
     func testInvalidServerTrustProducesCorrectErrorForPublicKeyPinning() {
         let expectation = self.expectationWithDescription("Request should fail")
         
-        let googleCertificateURL = NSBundle(forClass: SFNetworkingTests.self).URLForResource("google.com", withExtension:"cer")
+        let googleCertificateURL = NSBundle(forClass: SNNetworkingTests.self).URLForResource("google.com", withExtension:"cer")
         
         let googleCertificateData = NSData(contentsOfURL: googleCertificateURL!)
 
-        let manager = SFHTTPSessionManager<Void>(baseURL: NSURL(string:"https://apple.com/")!, converter: { _ in })
+        let manager = SNHTTPSessionManager<Void>(baseURL: NSURL(string:"https://apple.com/")!, converter: { _ in })
 
         //[manager setResponseSerializer:[AFHTTPResponseSerializer serializer]];
-        manager.securityPolicy = SFSecurityPolicy(pinningMode: .PublicKey, withPinnedCertificates:[googleCertificateData!])
+        manager.securityPolicy = SNSecurityPolicy(pinningMode: .PublicKey, withPinnedCertificates:[googleCertificateData!])
         let f = manager.GET("", parameters:nil, downloadProgress: nil)
 
         f.onSuccess{ XCTFail("Request should fail") }

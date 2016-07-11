@@ -1,19 +1,19 @@
 /**
- # SFURLRequestSerializer.swift
- ##  AFNetworking
+ # SNURLRequestSerializer.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/3/16
- - Copyright:   Copyright © 2016 AFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 
-public enum SFHTTPRequestQueryStringSerializationStyle {
+public enum SNHTTPRequestQueryStringSerializationStyle {
     case Default
 }
 
-protocol SFURLRequestSerializer {
+protocol SNURLRequestSerializer {
 
     /**
      Returns a request with the specified parameters encoded into a copy of the original request.

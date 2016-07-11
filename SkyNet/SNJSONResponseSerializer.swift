@@ -1,26 +1,25 @@
 /**
- # SFJSONResponseSerializer.swift
-## SFNetworking
+ # SNJSONResponseSerializer.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/14/16
- - Copyright: Copyright © 2016 SFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 import SwiftyJSON
-//import SWXMLHash
 
 /**
- `SFJSONResponseSerializer` is a subclass of `SFHTTPResponseSerializer` that validates and decodes JSON responses.
+ `SNJSONResponseSerializer` is a subclass of `SNHTTPResponseSerializer` that validates and decodes JSON responses.
  
- By default, `SFJSONResponseSerializer` accepts the following MIME types, which includes the official standard, `application/json`, as well as other commonly-used types:
+ By default, `SNJSONResponseSerializer` accepts the following MIME types, which includes the official standard, `application/json`, as well as other commonly-used types:
  
  - `application/json`
  - `text/json`
  - `text/javascript`
  */
-public class SFJSONResponseSerializer<T> : SFURLResponseSerializer {
+public class SNJSONResponseSerializer<T> : SNURLResponseSerializer {
     public typealias Element = T
     typealias JSONConverter = JSON throws -> T
     
@@ -56,14 +55,14 @@ public class SFJSONResponseSerializer<T> : SFURLResponseSerializer {
  
      - Parameter readingOptions: The specified JSON reading options.
      */
-    static func serializerWithReadingOptions(readingOptions: NSJSONReadingOptions, converter: JSONConverter) -> SFJSONResponseSerializer {
-        let serializer = SFJSONResponseSerializer(converter: converter)
+    static func serializerWithReadingOptions(readingOptions: NSJSONReadingOptions, converter: JSONConverter) -> SNJSONResponseSerializer {
+        let serializer = SNJSONResponseSerializer(converter: converter)
         serializer.readingOptions = readingOptions
         
         return serializer
     }
     
-    // MARK: SFURLResponseSerialization
+    // MARK: SNURLResponseSerialization
     public func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
         // check status codes
         if let http = response as? NSHTTPURLResponse {
@@ -76,7 +75,7 @@ public class SFJSONResponseSerializer<T> : SFURLResponseSerializer {
 }
 
 /*
-func SFJSONObjectByRemovingKeysWithNullValues(JSONObject: AnyObject, readingOptions: NSJSONReadingOptions) {
+func SNJSONObjectByRemovingKeysWithNullValues(JSONObject: AnyObject, readingOptions: NSJSONReadingOptions) {
     if JSONObject is Array {
         NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:[(NSArray *)JSONObject count]];
         for (id value in (NSArray *)JSONObject) {

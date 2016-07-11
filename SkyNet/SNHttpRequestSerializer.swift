@@ -1,21 +1,21 @@
 /**
- # SFHttpRequestSerializer.swift
- ##  AFNetworking
+ # SNHttpRequestSerializer.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/3/16
- - Copyright:   Copyright © 2016 AFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 
 /**
- `SFHTTPRequestSerializer` conforms to the `SFURLRequestSerialization` & `SFURLResponseSerialization` protocols, offering a concrete base implementation of query string / URL form-encoded parameter serialization and default request headers, as well as response status code and content type validation.
+ `SNHTTPRequestSerializer` conforms to the `SNURLRequestSerialization` & `SNURLResponseSerialization` protocols, offering a concrete base implementation of query string / URL form-encoded parameter serialization and default request headers, as well as response status code and content type validation.
  
- Any request or response serializer dealing with HTTP is encouraged to subclass `SFHTTPRequestSerializer` in order to ensure consistent default behavior.
+ Any request or response serializer dealing with HTTP is encouraged to subclass `SNHTTPRequestSerializer` in order to ensure consistent default behavior.
  */
 
-public class SFHTTPRequestSerializer: SFURLRequestSerializer {
+public class SNHTTPRequestSerializer: SNURLRequestSerializer {
     
     public typealias QueryStringSerializationBlock = (NSURLRequest, parameters: Parameters) throws -> String
 
@@ -80,7 +80,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
     var observedChangedKeyPaths: Set<String> = []
     
     init() {
-/*        for keyPath in SFHTTPRequestSerializerObservedKeyPaths {
+/*        for keyPath in SNHTTPRequestSerializerObservedKeyPaths {
             if self.respondsToSelector(NSSelectorFromString(keyPath)) {
                 self.addObserver(self, forKeyPath:keyPath, options:NSKeyValueObservingOptions.New, context:AFHTTPRequestSerializerObserverContext)
             }
@@ -91,7 +91,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
     /**
      Creates and returns a serializer with default configuration.
      */
-    static func serializer() -> SFHTTPRequestSerializer { return SFHTTPRequestSerializer() }
+    static func serializer() -> SNHTTPRequestSerializer { return SNHTTPRequestSerializer() }
     
     /**
      Sets the value for the HTTP headers set in request objects made by the HTTP client. If `nil`, removes the existing value for that header.
@@ -151,7 +151,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
      
      - Seealso: AFHTTPRequestQueryStringSerializationStyle
      */
-    func setQueryStringSerializationWithStyle(style: SFHTTPRequestQueryStringSerializationStyle) {
+    func setQueryStringSerializationWithStyle(style: SNHTTPRequestQueryStringSerializationStyle) {
         
     }
     
@@ -189,7 +189,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
         mutableRequest.HTTPMethod = method
         
 /*
-        for keyPath in SFHTTPRequestSerializerObservedKeyPaths {
+        for keyPath in SNHTTPRequestSerializerObservedKeyPaths {
             if self.observedChangedKeyPaths.contains(keyPath) {
                 mutableRequest.setValue(self.valueForKeyPath(keyPath), forKey:keyPath)
             }
@@ -200,7 +200,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
         return r //.mutableRequest!
     }
     
-    typealias MultipartMakerBlock = SFMultipartFormData->Void
+    typealias MultipartMakerBlock = SNMultipartFormData->Void
     /**
      Creates an `NSMutableURLRequest` object with the specified HTTP method and URLString, and constructs a `multipart/form-data` HTTP body, using the specified parameters and multipart form data block. See http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.2
      
@@ -219,7 +219,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
         let mutableRequest = try self.requestWithMethod(method, URLString:URLString, parameters:nil, body: nil)
         
         /*
-        let formData = SFStreamingMultipartFormData(request:mutableRequest, stringEncoding:NSUTF8StringEncoding)
+        let formData = SNStreamingMultipartFormData(request:mutableRequest, stringEncoding:NSUTF8StringEncoding)
         
         if (parameters != nil) {
             for pair in parameters {
@@ -368,14 +368,14 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
             return mutableRequest
         }
         else {
-            throw SFError.BadRequest
+            throw SNError.BadRequest
         }
     }
     
     // MARK: NSKeyValueObserving
 /*
     static func automaticallyNotifiesObserversForKey(key: String) -> Bool {
-        if SFHTTPRequestSerializerObservedKeyPaths.contains(key) {
+        if SNHTTPRequestSerializerObservedKeyPaths.contains(key) {
             return false
         }
     
@@ -395,7 +395,7 @@ public class SFHTTPRequestSerializer: SFURLRequestSerializer {
     
 }
 
-public enum SFError : ErrorType {
+public enum SNError : ErrorType {
     case BadRequest
     case InvalidResponse        // either no response or no data
     case EmptyResponse
@@ -403,8 +403,8 @@ public enum SFError : ErrorType {
     case NoLocation             // no NSURL saved
 }
 
-public var SFHTTPRequestSerializerObservedKeyPaths = getSFHTTPRequestSerializerObservedKeyPaths()
-func getSFHTTPRequestSerializerObservedKeyPaths() -> [String] {
+public var SNHTTPRequestSerializerObservedKeyPaths = getSNHTTPRequestSerializerObservedKeyPaths()
+func getSNHTTPRequestSerializerObservedKeyPaths() -> [String] {
     var rt = [String]()
     rt = ["allowsCellularAccess"]
     return rt

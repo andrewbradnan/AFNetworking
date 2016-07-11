@@ -1,5 +1,5 @@
 /**
- # XMLResponseSerializer.swift
+ # SNXMLResponseSerializer.swift
 ## SkyNet
  
  - Author: Andrew Bradnan
@@ -11,13 +11,13 @@ import Foundation
 import SWXMLHash
 
 /**
- `XMLResponseSerializer` is a subclass of `SFHTTPResponseSerializer` that validates and decodes XML responses.
+ `XMLResponseSerializer` is a subclass of `SNHTTPResponseSerializer` that validates and decodes XML responses.
  
  By default, `XMLResponseSerializer` accepts the following MIME types, which includes the official standard, `application/json`, as well as other commonly-used types:
  
  - `text/xml`
  */
-public class XMLResponseSerializer<T> : SFURLResponseSerializer {
+public class SNXMLResponseSerializer<T> : SNURLResponseSerializer {
     public typealias Element = T
     public typealias Converter = XMLIndexer throws -> T
     
@@ -41,7 +41,7 @@ public class XMLResponseSerializer<T> : SFURLResponseSerializer {
     
     var xmlConverter: Converter
     
-    // MARK: SFURLResponseSerialization
+    // MARK: SNURLResponseSerialization
     public func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
         // check status codes
         if let http = response as? NSHTTPURLResponse {

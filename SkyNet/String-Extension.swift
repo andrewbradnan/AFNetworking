@@ -1,10 +1,10 @@
 /**
  # String-Extension.swift
- ##  AFNetworking
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/5/16
- - Copyright:   Copyright © 2016 AFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation

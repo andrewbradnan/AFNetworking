@@ -1,20 +1,20 @@
 /**
- # SFResponseSerializer.swift
- ##  SFNetworking
+ # SNResponseSerializer.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/7/16
- - Copyright:   Copyright © 2016 AFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 
 /**
- The `SFURLResponseSerialization` protocol is adopted by an object that decodes data into a more useful object representation, according to details in the server response. Response serializers may additionally perform validation on the incoming response and data.
+ The `SNURLResponseSerialization` protocol is adopted by an object that decodes data into a more useful object representation, according to details in the server response. Response serializers may additionally perform validation on the incoming response and data.
  
  For example, a JSON response serializer may check for an acceptable status code (`2XX` range) and content type (`application/json`), decoding a valid JSON response into an object.
  */
-public protocol SFURLResponseSerializer /* <NSObject, NSSecureCoding, NSCopying> */ {
+public protocol SNURLResponseSerializer /* <NSObject, NSSecureCoding, NSCopying> */ {
     associatedtype Element
     
     /**
@@ -42,7 +42,7 @@ public protocol SFURLResponseSerializer /* <NSObject, NSSecureCoding, NSCopying>
     func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> Element
 }
 
-extension SFURLResponseSerializer {
+extension SNURLResponseSerializer {
     public func checkContentType(response: NSHTTPURLResponse) {
         if let ct = response.allHeaderFields["Content-Type" as NSObject] as? String {
             if !self.acceptableContentTypes.contains(ct) {
@@ -54,7 +54,7 @@ extension SFURLResponseSerializer {
     public func checkStatus(response: NSHTTPURLResponse, data: NSData) throws {
         let sc = response.statusCode
         if !self.acceptableStatusCodes.contains(sc) {
-            throw SFError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
+            throw SNError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
         }
     }
 }

@@ -1,33 +1,33 @@
 /**
- # SFSecurityPolicy.swift
- ##  AFNetworking
+ # SNSecurityPolicy.swift
+##  SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/2/16
- - Copyright: Copyright © 2016 SFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 
-public enum SFSSLPinningMode {
+public enum SNSSLPinningMode {
     case None
     case PublicKey
     case Certificate
 }
 
 /**
- `SFSecurityPolicy` evaluates server trust against pinned X.509 certificates and public keys over secure connections.
+ `SNSecurityPolicy` evaluates server trust against pinned X.509 certificates and public keys over secure connections.
  
  Adding pinned SSL certificates to your app helps prevent man-in-the-middle attacks and other vulnerabilities. Applications dealing with sensitive customer data or financial information are strongly encouraged to route all communication over an HTTPS connection with SSL pinning configured and enabled.
  */
 
 
-public class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
+public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
 {
     /**
      The criteria by which server trust should be evaluated against the pinned SSL certificates. Defaults to `.None`.
      */
-    let pinningMode: SFSSLPinningMode
+    let pinningMode: SNSSLPinningMode
     
     /**
      The certificates used to evaluate server trust according to the SSL pinning mode.
@@ -68,10 +68,10 @@ public class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
         return Set<NSData>(rgOfData)
     }
 
-    static var defaultPinnedCertificates: Set<NSData> = SFSecurityPolicy.getDefaultPinnedCertificates()
+    static var defaultPinnedCertificates: Set<NSData> = SNSecurityPolicy.getDefaultPinnedCertificates()
         
     static func getDefaultPinnedCertificates() -> Set<NSData> {
-        let bundle = NSBundle(forClass: SFSecurityPolicy.self)
+        let bundle = NSBundle(forClass: SNSecurityPolicy.self)
         return certificatesInBundle(bundle)
     }
 
@@ -84,7 +84,7 @@ public class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      - Returns: The default security policy.
      */
-    public static let defaultPolicy = SFSecurityPolicy()
+    public static let defaultPolicy = SNSecurityPolicy()
     
     
     // MARK: Initialization
@@ -97,7 +97,7 @@ public class SFSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      - Returns: A new security policy.
      */
-    public init(pinningMode: SFSSLPinningMode = .None, withPinnedCertificates: Set<NSData>? = SFSecurityPolicy.defaultPinnedCertificates) {
+    public init(pinningMode: SNSSLPinningMode = .None, withPinnedCertificates: Set<NSData>? = SNSecurityPolicy.defaultPinnedCertificates) {
         self.pinningMode = pinningMode
         self.pinnedCertificates = withPinnedCertificates ?? []
     }

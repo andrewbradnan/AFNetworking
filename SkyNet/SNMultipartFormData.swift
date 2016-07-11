@@ -1,18 +1,18 @@
 /**
- # SFMultipartFormData.swift
-## SFNetworking
+ # SNMultipartFormData.swift
+## SkyNet
  
  - Author: Andrew Bradnan
  - Date: 6/7/16
- - Copyright: Copyright © 2016 SFNetworking. All rights reserved.
+ - Copyright: Copyright © 2016 SkyNet. All rights reserved.
  */
 
 import Foundation
 
 /**
- The `SFMultipartFormData` protocol defines the methods supported by the parameter in the block argument of `SFHTTPRequestSerializer -multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:`.
+ The `SNMultipartFormData` protocol defines the methods supported by the parameter in the block argument of `SNHTTPRequestSerializer -multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:`.
  */
-protocol SFMultipartFormData {
+protocol SNMultipartFormData {
     
     /**
      Appends the HTTP header `Content-Disposition: file; filename=#{generated filename}; name=#{name}"` and `Content-Type: #{generated mimeType}`, followed by the encoded file data and the multipart form boundary.
