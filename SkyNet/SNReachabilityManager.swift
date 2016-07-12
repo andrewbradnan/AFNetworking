@@ -122,7 +122,7 @@ public class SNReachabilityManager {
         // let needsConnection = flags.contains(.connectionRequired)
      }
      
-    init(reachability:SCNetworkReachabilityRef) {
+    public init(reachability:SCNetworkReachabilityRef) {
         self._networkReachability = reachability
         self.networkReachabilityStatus = .Unknown
     }
