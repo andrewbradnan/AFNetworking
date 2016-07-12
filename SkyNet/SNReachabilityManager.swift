@@ -141,7 +141,7 @@ public class SNReachabilityManager {
     
     public var isReachableViaWiFi : Bool {
         get {
-            return self.reachabilityFlags.contains(<#T##member: SCNetworkReachabilityFlags##SCNetworkReachabilityFlags#>) == .ReachableViaWiFi
+            return self.reachabilityFlags.contains(.IsLocalAddress)
         }
     }
     
