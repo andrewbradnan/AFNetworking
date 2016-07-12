@@ -24,9 +24,9 @@ enum ReachabilityError: ErrorType {
 }
 
 func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFlags, info: UnsafeMutablePointer<Void>) {
-    //let mgr = UnsafeMutablePointer<SNReachabilityManager>(info).memory
     let mgr: SNReachabilityManager = bridge(info)
-    
+
+    mgr.reachabilityFlags = flags
     dispatch_async(dispatch_get_main_queue()) {
         mgr.reachabilityChanged.fire(flags)
     }
@@ -36,6 +36,9 @@ func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFl
 public class SNReachabilityManager {
     
     public var reachabilityChanged = Event<SCNetworkReachabilityFlags>()
+    public var reachabilityFlags: SCNetworkReachabilityFlags = []
+
+    var networkReachabilityStatus: SNReachabilityStatus  // TODO: CellSink
     
     private var _networkReachability: SCNetworkReachabilityRef?
     public var networkReachability: SCNetworkReachabilityRef? {
@@ -43,8 +46,6 @@ public class SNReachabilityManager {
             return _networkReachability
         }
     }
-    var networkReachabilityStatus: SNReachabilityStatus  // TODO: CellSink
-    //var networkReachabilityStatusBlock: SNReachabilityStatusBlock    // TODO: Event
     
     public static let sharedManager = SNReachabilityManager.manager()
     
@@ -134,13 +135,13 @@ public class SNReachabilityManager {
     
     public var isReachableViaWWAN: Bool {
         get {
-            return self.networkReachabilityStatus == .ReachableViaWWAN
+            return self.reachabilityFlags.contains(.IsWWAN)
         }
     }
     
     public var isReachableViaWiFi : Bool {
         get {
-            return self.networkReachabilityStatus == .ReachableViaWiFi
+            return self.reachabilityFlags.contains(<#T##member: SCNetworkReachabilityFlags##SCNetworkReachabilityFlags#>) == .ReachableViaWiFi
         }
     }
     
@@ -155,20 +156,12 @@ public class SNReachabilityManager {
             return
         }
         
-//        let callback = { [weak self] (status: SNReachabilityStatus) in
-//            if let this = self {
-//                this.networkReachabilityStatus = status
-//                //this.networkReachabilityStatusBlock?(status)
-//            }
-//        }
-        
         guard !notifierRunning else { return }
         
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = bridge(self)
         
-        if !SCNetworkReachabilitySetCallback(networkReachability!,  callback //{ (_, flags, _) in print(flags) }
-            , &context) {
+        if !SCNetworkReachabilitySetCallback(networkReachability!, callback, &context) {
             stopMonitoring()
             throw ReachabilityError.UnableToSetCallback
         }
@@ -178,20 +171,14 @@ public class SNReachabilityManager {
             throw ReachabilityError.UnableToSetDispatchQueue
         }
         
-        // Perform an intial check
-        //dispatch_async(dispatch_get_main_queue()) { () -> Void in
-            //let flags = self.reachabilityFlags
-            //self.reachabilityChanged.fire(self.networkReachabilityStatus)
-        //}
-        
         notifierRunning = true
 
-        var flags : SCNetworkReachabilityFlags = []
-        
-        if SCNetworkReachabilityGetFlags(networkReachability!, &flags) == false {
+        // Perform an intial check
+
+        if SCNetworkReachabilityGetFlags(networkReachability!, &self.reachabilityFlags) == false {
             return
         }
-        self.reachabilityChanged.fire(flags)
+        self.reachabilityChanged.fire(self.reachabilityFlags)
     }
     
     func stopMonitoring() {
@@ -233,3 +220,14 @@ func bridge<T : AnyObject>(ptr : UnsafeMutablePointer<Void>) -> T {
     return Unmanaged<T>.fromOpaque(COpaquePointer(ptr)).takeUnretainedValue()
     // return unsafeBitCast(ptr, T.self) // ***
 }
+
+
+//func bridge<T : AnyObject>(obj : T) -> UnsafePointer<Void> {
+//    return UnsafePointer(OpaquePointer(bitPattern: Unmanaged.passUnretained(obj)))
+//    // return unsafeAddress(of: obj) // ***
+//}
+//
+//func bridge<T : AnyObject>(ptr : UnsafePointer<Void>) -> T {
+//    return Unmanaged<T>.fromOpaque(OpaquePointer(ptr)).takeUnretainedValue()
+//    // return unsafeBitCast(ptr, to: T.self) // ***
+//}
