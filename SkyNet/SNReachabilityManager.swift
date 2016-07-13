@@ -47,7 +47,7 @@ public class SNReachabilityManager {
         }
     }
     
-    public static let sharedManager = SNReachabilityManager.manager()
+    public static let sharedManager = SNReachabilityManager()
     
     /*
      func isConnectionAvailble()->Bool{
@@ -66,13 +66,12 @@ public class SNReachabilityManager {
      return (isReachable && !needsConnection)
      }
      */
-    public static func managerForDomain(domain: String) -> SNReachabilityManager? {
-        var rt: SNReachabilityManager?
+    public convenience init?(domain: String) {
         
         if let reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, domain) {
-            rt = SNReachabilityManager(reachability:reachability)
+            self.init(reachability:reachability)
         }
-        return rt
+        return nil
     }
     
     /*
@@ -96,7 +95,7 @@ public class SNReachabilityManager {
      }
      */
     
-     static func manager() -> SNReachabilityManager? {
+     convenience init?() {
         var zeroAddress = sockaddr_in()
         zeroAddress.sin_len = UInt8(sizeofValue(zeroAddress))
         zeroAddress.sin_family = sa_family_t(AF_INET)
@@ -107,19 +106,7 @@ public class SNReachabilityManager {
             return nil
         }
         
-        return SNReachabilityManager(reachability: defaultRouteReachability)
-        
-//        var flags : SCNetworkReachabilityFlags = []
-//        if !SCNetworkReachabilityGetFlags(defaultRouteReachability, &flags) {
-//            return nil
-//        }
-//        
-//        let isReachable = flags.contains(.Reachable)
-//        let needsConnection = flags.contains(.ConnectionRequired)
-        
-        // For Swift 3, replace the last two lines by
-        // let isReachable = flags.contains(.reachable)
-        // let needsConnection = flags.contains(.connectionRequired)
+        self.init(reachability: defaultRouteReachability)
      }
      
     public init(reachability:SCNetworkReachabilityRef) {
