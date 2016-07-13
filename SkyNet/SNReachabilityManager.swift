@@ -71,7 +71,9 @@ public class SNReachabilityManager {
         if let reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, domain) {
             self.init(reachability:reachability)
         }
-        return nil
+        else {
+            return nil
+        }
     }
     
     /*
