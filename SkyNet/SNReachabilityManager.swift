@@ -118,7 +118,7 @@ public class SNReachabilityManager {
     
     public var isReachable: Bool {
         get {
-            return self.isReachableViaWWAN || self.isReachableViaWiFi
+            return self.reachabilityFlags.contains(.Reachable) || self.isReachableViaWWAN || self.isReachableViaWiFi
         }
     }
     
