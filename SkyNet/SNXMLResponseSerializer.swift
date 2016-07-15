@@ -36,7 +36,7 @@ public class SNXMLResponseSerializer<T> : SNURLResponseSerializer {
 
     public init(converter: Converter) {
         self.xmlConverter = converter
-        self.acceptableContentTypes = ["text/xml"]
+        self.acceptableContentTypes = ["text/xml", "text/xml; charset=\"utf-8\""	]
         for sc in 200..<300 {
             self.acceptableStatusCodes.insert(sc)
         }
