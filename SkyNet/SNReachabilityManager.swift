@@ -97,7 +97,7 @@ public class SNReachabilityManager {
      }
      */
     
-    convenience init?(address: UInt32) {
+    public convenience init?(address: UInt32) {
         
         var localWifiAddress: sockaddr_in = sockaddr_in(sin_len: __uint8_t(0), sin_family: sa_family_t(0), sin_port: in_port_t(0), sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
         localWifiAddress.sin_len = UInt8(sizeofValue(localWifiAddress))
