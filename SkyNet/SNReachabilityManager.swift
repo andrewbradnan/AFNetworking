@@ -97,7 +97,23 @@ public class SNReachabilityManager {
      }
      */
     
-     convenience init?() {
+    convenience init?(address: UInt32) {
+        
+        var localWifiAddress: sockaddr_in = sockaddr_in(sin_len: __uint8_t(0), sin_family: sa_family_t(0), sin_port: in_port_t(0), sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
+        localWifiAddress.sin_len = UInt8(sizeofValue(localWifiAddress))
+        localWifiAddress.sin_family = sa_family_t(AF_INET)
+        
+        // IN_LINKLOCALNETNUM is defined in <netinet/in.h> as 169.254.0.0
+        localWifiAddress.sin_addr.s_addr = in_addr_t(address.bigEndian)
+        
+        guard let ref = withUnsafePointer(&localWifiAddress, {
+            SCNetworkReachabilityCreateWithAddress(nil, UnsafePointer($0))
+        }) else { return nil }
+        
+        self.init(reachability: ref)
+    }
+    
+    convenience init?() {
         var zeroAddress = sockaddr_in()
         zeroAddress.sin_len = UInt8(sizeofValue(zeroAddress))
         zeroAddress.sin_family = sa_family_t(AF_INET)
@@ -109,8 +125,8 @@ public class SNReachabilityManager {
         }
         
         self.init(reachability: defaultRouteReachability)
-     }
-     
+    }
+
     public init(reachability:SCNetworkReachabilityRef) {
         self._networkReachability = reachability
         self.networkReachabilityStatus = .Unknown
