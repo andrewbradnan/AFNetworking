@@ -11,16 +11,10 @@ import Foundation
 import SystemConfiguration
 import SwiftCommon
 
-enum SNReachabilityStatus : Int {
-    case Unknown          = -1
-    case NotReachable     = 0
-    case ReachableViaWWAN = 1
-    case ReachableViaWiFi = 2
-}
-
 enum ReachabilityError: ErrorType {
     case UnableToSetCallback
     case UnableToSetDispatchQueue
+    case NotifierNotRunning
 }
 
 func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFlags, info: UnsafeMutablePointer<Void>) {
@@ -38,34 +32,51 @@ public class SNReachabilityManager {
     public var reachabilityChanged = Event<SCNetworkReachabilityFlags>()
     public var reachabilityFlags: SCNetworkReachabilityFlags = []
 
-    var networkReachabilityStatus: SNReachabilityStatus  // TODO: CellSink
-    
-    private var _networkReachability: SCNetworkReachabilityRef?
-    public var networkReachability: SCNetworkReachabilityRef? {
+    private let _networkReachability: SCNetworkReachabilityRef
+    public var networkReachability: SCNetworkReachabilityRef {
         get {
             return _networkReachability
         }
     }
     
     public static let sharedManager = SNReachabilityManager()
+
     
-    /*
-     func isConnectionAvailble()->Bool{
-     
-     var rechability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, "www.apple.com").takeRetainedValue()
-     
-     var flags : SCNetworkReachabilityFlags = 0
-     
-     if SCNetworkReachabilityGetFlags(rechability, &flags) == 0
-     {
-     return false
-     }
-     
-     let isReachable = (flags & UInt32(kSCNetworkFlagsReachable)) != 0
-     let needsConnection = (flags & UInt32(kSCNetworkFlagsConnectionRequired)) != 0
-     return (isReachable && !needsConnection)
-     }
-     */
+    public var isConnectionAvailble: Bool {
+        return self.isReachable && !self.isConnectionRequired
+    }
+    
+    public var isTransientConnection: Bool {
+        return self.reachabilityFlags.contains(.TransientConnection)
+    }
+    public var isReachable: Bool {
+        return self.reachabilityFlags.contains(.Reachable)
+    }
+    public var isConnectionRequired: Bool {
+        return self.reachabilityFlags.contains(.ConnectionRequired)
+    }
+    public var isConnectionOnTraffic: Bool {
+        return self.reachabilityFlags.contains(.ConnectionOnTraffic)
+    }
+    public var isInterventionRequired: Bool {
+        return self.reachabilityFlags.contains(.InterventionRequired)
+    }
+    public var isConnectionOnDemand: Bool {
+        return self.reachabilityFlags.contains(.ConnectionOnDemand)
+    }
+    public var isLocalAddress: Bool {
+        return self.reachabilityFlags.contains(.IsLocalAddress)
+    }
+    public var isDirect: Bool {
+        return self.reachabilityFlags.contains(.IsDirect)
+    }
+    public var isWWAN: Bool {
+        return self.reachabilityFlags.contains(.IsWWAN)
+    }
+    public var isConnectionAutomatic: Bool {
+        return self.reachabilityFlags.contains(.ConnectionAutomatic)
+    }
+
     public convenience init?(domain: String) {
         
         if let reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, domain) {
@@ -76,29 +87,7 @@ public class SNReachabilityManager {
         }
     }
     
-    /*
-     public static func managerForAddress(address: String, port: String? = nil) -> SNReachabilityManager {
-     var hints = addrinfo(
-     ai_flags: 0,
-     ai_family: AF_UNSPEC,
-     ai_socktype: SOCK_STREAM,
-     ai_protocol: IPPROTO_TCP,
-     ai_addrlen: 0,
-     ai_canonname: nil,
-     ai_addr: nil,
-     ai_next: nil)
-     
-     var result: UnsafeMutablePointer<addrinfo>
-     
-     let error = getaddrinfo(address, port ?? "", &hints, &result)
-     
-     let reachability = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, addrinfo)
-     return SNReachabilityManager(reachability:reachability)
-     }
-     */
-    
     public convenience init?(address: UInt32) {
-        
         var localWifiAddress: sockaddr_in = sockaddr_in(sin_len: __uint8_t(0), sin_family: sa_family_t(0), sin_port: in_port_t(0), sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
         localWifiAddress.sin_len = UInt8(sizeofValue(localWifiAddress))
         localWifiAddress.sin_family = sa_family_t(AF_INET)
@@ -129,52 +118,25 @@ public class SNReachabilityManager {
 
     public init(reachability:SCNetworkReachabilityRef) {
         self._networkReachability = reachability
-        self.networkReachabilityStatus = .Unknown
-    }
-    
-    public var isReachable: Bool {
-        get {
-            let reachable = self.reachabilityFlags.contains(.Reachable)
-            let wwan = self.isReachableViaWWAN
-            let wifi = self.isReachableViaWiFi
-            return reachable // || wwan || wifi
-        }
-    }
-    
-    public var isReachableViaWWAN: Bool {
-        get {
-            return self.reachabilityFlags.contains(.IsWWAN)
-        }
-    }
-    
-    public var isReachableViaWiFi : Bool {
-        get {
-            return self.reachabilityFlags.contains(.IsLocalAddress)
-        }
     }
     
     private let reachabilitySerialQueue = dispatch_queue_create("com.phyn.reachability", DISPATCH_QUEUE_SERIAL)
     private var notifierRunning: Bool = false
-    //private var reachabilityRef: SCNetworkReachability?
     
     public func startMonitoring() throws {
         self.stopMonitoring()
         
-        if self.networkReachability == nil {
-            return
-        }
-        
-        guard !notifierRunning else { return }
+        guard !notifierRunning else { ReachabilityError.NotifierNotRunning }
         
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = bridge(self)
         
-        if !SCNetworkReachabilitySetCallback(networkReachability!, callback, &context) {
+        if !SCNetworkReachabilitySetCallback(self.networkReachability, callback, &context) {
             stopMonitoring()
             throw ReachabilityError.UnableToSetCallback
         }
         
-        if !SCNetworkReachabilitySetDispatchQueue(networkReachability!, self.reachabilitySerialQueue) {
+        if !SCNetworkReachabilitySetDispatchQueue(self.networkReachability, self.reachabilitySerialQueue) {
             stopMonitoring()
             throw ReachabilityError.UnableToSetDispatchQueue
         }
@@ -182,42 +144,19 @@ public class SNReachabilityManager {
         notifierRunning = true
 
         // Perform an intial check
+        var flags: SCNetworkReachabilityFlags = []
 
-        if SCNetworkReachabilityGetFlags(networkReachability!, &self.reachabilityFlags) == false {
+        if SCNetworkReachabilityGetFlags(self.networkReachability, &flags) == false {
             return
         }
+        self.reachabilityFlags = flags
         self.reachabilityChanged.fire(self.reachabilityFlags)
     }
     
     func stopMonitoring() {
-        if self.networkReachability == nil {
-            return
-        }
-        
-        SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability!, CFRunLoopGetMain(), kCFRunLoopCommonModes)
+        SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes)
     }
-    
-    
-    //func localizedNetworkReachabilityStatusString() -> String {
-    //    return AFStringFromNetworkReachabilityStatus(self.networkReachabilityStatus)
-    // }
-    
-    
 }
-
-
-/*!
-	@typedef SCNetworkReachabilityCallBack
-	@discussion Type of the callback function used when the
- reachability of a network address or name changes.
-	@param target The SCNetworkReachability reference being monitored
- for changes.
-	@param flags The new SCNetworkReachabilityFlags representing the
- reachability status of the network address/name.
-	@param info A C pointer to a user-specified block of data.
- */
-//var callback = @convention(c) (SCNetworkReachability, SCNetworkReachabilityFlags, UnsafeMutablePointer<Void>) -> Void
-
 
 func bridge<T : AnyObject>(obj : T) -> UnsafeMutablePointer<Void> {
     return UnsafeMutablePointer(Unmanaged.passUnretained(obj).toOpaque())
