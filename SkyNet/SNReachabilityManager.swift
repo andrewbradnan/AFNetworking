@@ -26,6 +26,20 @@ func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFl
     }
 }
 
+extension SCNetworkReachabilityFlags {
+    public static func reachabilityFlags(flags: SCNetworkReachabilityFlags) -> String {
+        return String(format: "%@%@%@%@%@%@%@%@%@",
+                      flags.contains(.IsWWAN)               ? "W" : "-",
+                      flags.contains(.Reachable)            ? "R" : "-",
+                      flags.contains(.ConnectionRequired)   ? "c" : "-",
+                      flags.contains(.TransientConnection)  ? "t" : "-",
+                      flags.contains(.InterventionRequired) ? "i" : "-",
+                      flags.contains(.ConnectionOnTraffic)  ? "C" : "-",
+                      flags.contains(.ConnectionOnDemand)   ? "D" : "-",
+                      flags.contains(.IsLocalAddress)       ? "l" : "-",
+                      flags.contains(.IsDirect)             ? "d" : "-")
+    }
+}
 
 public class SNReachabilityManager {
     
