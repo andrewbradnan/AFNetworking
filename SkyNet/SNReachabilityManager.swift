@@ -126,7 +126,7 @@ public class SNReachabilityManager {
     public func startMonitoring() throws {
         self.stopMonitoring()
         
-        guard !notifierRunning else { ReachabilityError.NotifierNotRunning }
+        guard !notifierRunning else { throw ReachabilityError.NotifierNotRunning }
         
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = bridge(self)
