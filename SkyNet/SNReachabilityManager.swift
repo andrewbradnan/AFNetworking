@@ -174,6 +174,7 @@ public class SNReachabilityManager {
     
     public func stopMonitoring() {
         SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes)
+        notifierRunning = false
     }
 }
 
