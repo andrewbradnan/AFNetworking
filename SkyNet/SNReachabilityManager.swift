@@ -116,7 +116,7 @@ public class SNReachabilityManager {
         self.init(reachability: ref)
     }
     
-    convenience init?() {
+    public convenience init?() {
         var zeroAddress = sockaddr_in()
         zeroAddress.sin_len = UInt8(sizeofValue(zeroAddress))
         zeroAddress.sin_family = sa_family_t(AF_INET)
