@@ -57,9 +57,8 @@ public class SNReachabilityManager {
 
     
     public var isConnectionAvailble: Bool {
-        return self.isReachable && !self.isConnectionRequired
+        return self.isReachable && (!self.isConnectionRequired || self.canConnectWithoutUserInteraction)
     }
-    
     public var isTransientConnection: Bool {
         return self.reachabilityFlags.contains(.TransientConnection)
     }
@@ -89,6 +88,12 @@ public class SNReachabilityManager {
     }
     public var isConnectionAutomatic: Bool {
         return self.reachabilityFlags.contains(.ConnectionAutomatic)
+    }
+    public var canConnectAutomatically: Bool {
+        return self.reachabilityFlags.contains(.ConnectionOnDemand) || self.reachabilityFlags.contains(.ConnectionOnTraffic)
+    }
+    public var canConnectWithoutUserInteraction: Bool {
+        return self.canConnectAutomatically && !self.reachabilityFlags.contains(.InterventionRequired)
     }
 
     public convenience init?(domain: String) {
