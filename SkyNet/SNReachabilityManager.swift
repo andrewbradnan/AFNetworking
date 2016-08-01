@@ -172,7 +172,7 @@ public class SNReachabilityManager {
         self.reachabilityChanged.fire(self.reachabilityFlags)
     }
     
-    func stopMonitoring() {
+    public func stopMonitoring() {
         SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes)
     }
 }
