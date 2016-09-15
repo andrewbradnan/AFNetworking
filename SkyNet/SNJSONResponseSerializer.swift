@@ -19,23 +19,23 @@ import SwiftyJSON
  - `text/json`
  - `text/javascript`
  */
-public class SNJSONResponseSerializer<T> : SNURLResponseSerializer {
+open class SNJSONResponseSerializer<T> : SNURLResponseSerializer {
     public typealias Element = T
-    typealias JSONConverter = JSON throws -> T
+    typealias JSONConverter = (JSON) throws -> T
     
     /**
      The acceptable HTTP status codes for responses. When non-`nil`, responses with status codes not contained by the set will result in an error during validation.
      
      See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
      */
-    public var acceptableStatusCodes = Set<Int>()
+    open var acceptableStatusCodes = Set<Int>()
     
     /**
      The acceptable MIME types for responses. When non-`nil`, responses with a `Content-Type` with MIME types that do not intersect with the set will result in an error during validation.
      */
-    public var acceptableContentTypes: Set<String> = []
+    open var acceptableContentTypes: Set<String> = []
     
-    public init(converter: JSON throws -> T) {
+    public init(converter: (JSON) throws -> T) {
         self.jsonConverter = converter
         self.acceptableContentTypes = ["application/json", "text/json", "text/javascript"]
     }
@@ -45,7 +45,7 @@ public class SNJSONResponseSerializer<T> : SNURLResponseSerializer {
     /**
      Options for reading the response JSON data and creating the Foundation objects. For possible values, see the `NSJSONSerialization` documentation section "NSJSONReadingOptions".
      */
-    var readingOptions = NSJSONReadingOptions()
+    var readingOptions = JSONSerialization.ReadingOptions()
 
     /// Whether to remove keys with `NSNull` values from response JSON. Defaults to `NO`.
     var removesKeysWithNullValues = false
@@ -55,7 +55,7 @@ public class SNJSONResponseSerializer<T> : SNURLResponseSerializer {
  
      - Parameter readingOptions: The specified JSON reading options.
      */
-    static func serializerWithReadingOptions(readingOptions: NSJSONReadingOptions, converter: JSONConverter) -> SNJSONResponseSerializer {
+    static func serializerWithReadingOptions(_ readingOptions: JSONSerialization.ReadingOptions, converter: JSONConverter) -> SNJSONResponseSerializer {
         let serializer = SNJSONResponseSerializer(converter: converter)
         serializer.readingOptions = readingOptions
         
@@ -63,9 +63,9 @@ public class SNJSONResponseSerializer<T> : SNURLResponseSerializer {
     }
     
     // MARK: SNURLResponseSerialization
-    public func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> T {
+    open func responseObjectForResponse(_ response: URLResponse, data:Data) throws -> T {
         // check status codes
-        if let http = response as? NSHTTPURLResponse {
+        if let http = response as? HTTPURLResponse {
             try self.checkStatus(http, data: data)
             self.checkContentType(http)
         }

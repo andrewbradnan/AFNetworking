@@ -9,17 +9,17 @@
 
 import Foundation
 
-extension NSURLRequest {
+extension URLRequest {
     var mutableRequest: NSMutableURLRequest? {
         get {
-            guard let url = self.URL else {return nil }
+            guard let url = self.url else {return nil }
             
-            let rt = NSMutableURLRequest(URL: url,
+            let rt = NSMutableURLRequest(url: url,
                                 cachePolicy: self.cachePolicy,
                                 timeoutInterval: self.timeoutInterval)
 
-            if self.HTTPMethod != nil {
-                rt.HTTPMethod = self.HTTPMethod!
+            if self.httpMethod != nil {
+                rt.httpMethod = self.httpMethod!
             }
             
             return rt

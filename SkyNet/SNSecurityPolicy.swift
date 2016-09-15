@@ -10,9 +10,9 @@
 import Foundation
 
 public enum SNSSLPinningMode {
-    case None
-    case PublicKey
-    case Certificate
+    case none
+    case publicKey
+    case certificate
 }
 
 /**
@@ -22,7 +22,7 @@ public enum SNSSLPinningMode {
  */
 
 
-public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
+open class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
 {
     /**
      The criteria by which server trust should be evaluated against the pinned SSL certificates. Defaults to `.None`.
@@ -36,8 +36,8 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      Note that if pinning is enabled, `evaluateServerTrust:forDomain:` will return true if any pinned certificate matches.
      */
-    private var _pinnedCertificates = Set<NSData>()
-    var pinnedCertificates: Set<NSData> {
+    fileprivate var _pinnedCertificates = Set<Data>()
+    var pinnedCertificates: Set<Data> {
         get { return _pinnedCertificates }
         set(value) {
             _pinnedCertificates = value
@@ -46,7 +46,7 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
         }
     }
     
-    private var pinnedPublicKeys = Set<PublicKey>()
+    fileprivate var pinnedPublicKeys = Set<PublicKey>()
     
     /// Whether or not to trust servers with an invalid or expired SSL certificates. Defaults to `false`.
     var allowInvalidCertificates: Bool = false
@@ -61,17 +61,17 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      - Returns: The certificates included in the given bundle.
      */
-    static func certificatesInBundle(bundle: NSBundle) -> Set<NSData> {
-        let paths = bundle.pathsForResourcesOfType("cer", inDirectory:".")
-        let rgOfData = paths.flatMap{ NSData(contentsOfFile:$0) }   // flatMap nixes the .None's
+    static func certificatesInBundle(_ bundle: Bundle) -> Set<Data> {
+        let paths = bundle.paths(forResourcesOfType: "cer", inDirectory:".")
+        let rgOfData = paths.flatMap{ (try? Data(contentsOf: URL(fileURLWithPath: $0))) }   // flatMap nixes the .None's
         
-        return Set<NSData>(rgOfData)
+        return Set<Data>(rgOfData)
     }
 
-    static var defaultPinnedCertificates: Set<NSData> = SNSecurityPolicy.getDefaultPinnedCertificates()
+    static var defaultPinnedCertificates: Set<Data> = SNSecurityPolicy.getDefaultPinnedCertificates()
         
-    static func getDefaultPinnedCertificates() -> Set<NSData> {
-        let bundle = NSBundle(forClass: SNSecurityPolicy.self)
+    static func getDefaultPinnedCertificates() -> Set<Data> {
+        let bundle = Bundle(for: SNSecurityPolicy.self)
         return certificatesInBundle(bundle)
     }
 
@@ -84,7 +84,7 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      - Returns: The default security policy.
      */
-    public static let defaultPolicy = SNSecurityPolicy()
+    open static let defaultPolicy = SNSecurityPolicy()
     
     
     // MARK: Initialization
@@ -97,15 +97,15 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      - Returns: A new security policy.
      */
-    public init(pinningMode: SNSSLPinningMode = .None, withPinnedCertificates: Set<NSData>? = SNSecurityPolicy.defaultPinnedCertificates) {
+    public init(pinningMode: SNSSLPinningMode = .none, withPinnedCertificates: Set<Data>? = SNSecurityPolicy.defaultPinnedCertificates) {
         self.pinningMode = pinningMode
         self.pinnedCertificates = withPinnedCertificates ?? []
     }
     
     // MARK: Evaluating Server Trust
     
-    func secPolicy(domain: String?) -> SecPolicy {
-        return self.validatesDomainName ? SecPolicyCreateSSL(true, domain) : SecPolicyCreateBasicX509()
+    func secPolicy(_ domain: String?) -> SecPolicy {
+        return self.validatesDomainName ? SecPolicyCreateSSL(true, domain as CFString?) : SecPolicyCreateBasicX509()
     }
     
     /**
@@ -118,10 +118,10 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
      
      - Returns: Whether or not to trust the server.
      */
-    func evaluateServerTrust(serverTrust: SecTrustRef, forDomain domain: String?) -> Bool
+    func evaluateServerTrust(_ serverTrust: SecTrust, forDomain domain: String?) -> Bool
     {
         if domain != nil {
-            if self.allowInvalidCertificates && self.validatesDomainName && (self.pinningMode == .None || (self.pinnedCertificates.count == 0)) {
+            if self.allowInvalidCertificates && self.validatesDomainName && (self.pinningMode == .none || (self.pinnedCertificates.count == 0)) {
                 /* https://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/NetworkingTopics/Articles/OverridingSSLChainValidationCorrectly.html
                  According to the docs, you should only trust your provided certs for evaluation.  Pinned certificates are added to the trust. Without pinned certificates, there is nothing to evaluate against.
              
@@ -135,7 +135,7 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
         
         SecTrustSetPolicies(serverTrust, secPolicy(domain))
         
-        if (self.pinningMode == .None) {
+        if (self.pinningMode == .none) {
             return self.allowInvalidCertificates || serverTrust.isValid
         } else if (!serverTrust.isValid && !self.allowInvalidCertificates) {
             return false
@@ -143,11 +143,11 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
         
         switch (self.pinningMode) {
         
-        case .Certificate:
-            let array = Array<NSData>(self.pinnedCertificates)
-            let certArray = array.flatMap { SecCertificateCreateWithData(nil, $0) }
+        case .certificate:
+            let array = Array<Data>(self.pinnedCertificates)
+            let certArray = array.flatMap { SecCertificateCreateWithData(nil, $0 as CFData) }
             
-            SecTrustSetAnchorCertificates(serverTrust, certArray)
+            SecTrustSetAnchorCertificates(serverTrust, certArray as CFArray)
 
             if !serverTrust.isValid {
                 return false
@@ -161,10 +161,10 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
                 return false
             }
             
-        case .PublicKey:
+        case .publicKey:
             let publicKeys = serverTrust.publicKeyTrustChain
             
-            return !self.pinnedPublicKeys.isDisjointWith(publicKeys)
+            return !self.pinnedPublicKeys.isDisjoint(with: publicKeys)
         //case .None:
             // fallthrough
         default:
@@ -174,11 +174,11 @@ public class SNSecurityPolicy// : NSObject //, /*NSSecureCoding,*/ NSCopying {
 
 }
 
-extension NSData {
+extension Data {
     /// - seealso: AFPublicKeyForCertificate
     public var publicKey : PublicKey? {
         get {
-            guard let allowedCertificate = SecCertificateCreateWithData(nil, self) else { return nil }
+            guard let allowedCertificate = SecCertificateCreateWithData(nil, self as CFData) else { return nil }
             
             let policy = SecPolicyCreateBasicX509()
             var allowedTrust: SecTrust?
@@ -199,7 +199,7 @@ extension NSData {
  */
 public struct PublicKey : Hashable {
     public let hashValue: Int
-    public let key: SecKeyRef
+    public let key: SecKey
 }
 
 public func ==(lhs: PublicKey, rhs: PublicKey) -> Bool {
@@ -212,10 +212,10 @@ extension SecTrust {
     /// - seealso: AFServerTrustIsValid
     public var isValid: Bool {
         get {
-            var result = SecTrustResultType(kSecTrustResultInvalid)
+            var result = SecTrustResultType.invalid
             SecTrustEvaluate(self, &result)
             
-            return result == UInt32(kSecTrustResultUnspecified) || result == UInt32(kSecTrustResultProceed)
+            return result == UInt32(SecTrustResultType.unspecified) || result == UInt32(SecTrustResultType.proceed)
         }
     }
     
@@ -234,9 +234,9 @@ extension SecTrust {
     }
     
     /// - seealso: AFCertificateTrustChainForServerTrust
-    public var trustChain: [NSData] {
+    public var trustChain: [Data] {
         get {
-            return self.certificates.map { SecCertificateCopyData($0) }
+            return self.certificates.map { (SecCertificateCopyData($0) as Data) }
         }
     }
     

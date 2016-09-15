@@ -15,14 +15,14 @@ import Foundation
  Any request or response serializer dealing with HTTP is encouraged to subclass `SNHTTPRequestSerializer` in order to ensure consistent default behavior.
  */
 
-public class SNHTTPRequestSerializer: SNURLRequestSerializer {
+open class SNHTTPRequestSerializer: SNURLRequestSerializer {
     
-    public typealias QueryStringSerializationBlock = (NSURLRequest, parameters: Parameters) throws -> String
+    public typealias QueryStringSerializationBlock = (URLRequest, _ parameters: Parameters) throws -> String
 
-    public var queryStringSerializer: QueryStringSerializationBlock?
+    open var queryStringSerializer: QueryStringSerializationBlock?
     
     /// The string encoding used to serialize parameters. `NSUTF8StringEncoding` by default.
-    let stringEncoding = NSUTF8StringEncoding
+    let stringEncoding = String.Encoding.utf8
     
     /**
      Whether created requests can use the device’s cellular radio (if present). `YES` by default.
@@ -36,7 +36,7 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      
      - Seealso: NSMutableURLRequest -setCachePolicy:
      */
-    let cachePolicy = NSURLRequestCachePolicy.UseProtocolCachePolicy
+    let cachePolicy = NSURLRequest.CachePolicy.useProtocolCachePolicy
     
     /**
      Whether created requests should use the default cookie handling. `true` by default.
@@ -57,14 +57,14 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      
      - Seealso: NSMutableURLRequest -setNetworkServiceType:
      */
-    let networkServiceType = NSURLRequestNetworkServiceType.NetworkServiceTypeDefault
+    let networkServiceType = NSURLRequest.NetworkServiceType.default
     
     /**
      The timeout interval, in seconds, for created requests. The default timeout interval is 60 seconds.
      
      - Seealso: NSMutableURLRequest -setTimeoutInterval:
      */
-    let timeoutInterval = NSTimeInterval(60)
+    let timeoutInterval = TimeInterval(60)
     
     // MARK: Configuring HTTP Request Headers
     
@@ -100,7 +100,7 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      - Parameter value: The value set as default for the specified header, or `nil`
      */
     // todo: make [] accessor
-    func setValue(value: String?, forHTTPHeaderField:String){
+    func setValue(_ value: String?, forHTTPHeaderField:String){
         
     }
     
@@ -111,7 +111,7 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      
      - Returns: The value set as default for the specified header, or `nil`
      */
-    func valueForHTTPHeaderField(field: NSString) -> String? {
+    func valueForHTTPHeaderField(_ field: NSString) -> String? {
         // TODO: implement
         return nil
     }
@@ -122,9 +122,9 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      - Parameter username: The HTTP basic auth username
      - Parameter password: The HTTP basic auth password
      */
-    public func setAuthorizationHeaderFieldWithUsername(username: String, password:String) {
-        let basicAuthCredentials = String(format:"%@:%@", username, password).dataUsingEncoding(NSUTF8StringEncoding)
-        let base64AuthCredentials = basicAuthCredentials!.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0))
+    open func setAuthorizationHeaderFieldWithUsername(_ username: String, password:String) {
+        let basicAuthCredentials = String(format:"%@:%@", username, password).data(using: String.Encoding.utf8)
+        let base64AuthCredentials = basicAuthCredentials!.base64EncodedString(options: NSData.Base64EncodingOptions(rawValue: 0))
         self.setValue(String(format:"Basic %@", base64AuthCredentials), forHTTPHeaderField:"Authorization")
     }
     
@@ -151,7 +151,7 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      
      - Seealso: AFHTTPRequestQueryStringSerializationStyle
      */
-    func setQueryStringSerializationWithStyle(style: SNHTTPRequestQueryStringSerializationStyle) {
+    func setQueryStringSerializationWithStyle(_ style: SNHTTPRequestQueryStringSerializationStyle) {
         
     }
     
@@ -161,7 +161,7 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      
      - Parameter block: A block that defines a process of encoding parameters into a query string. This block returns the query string and takes three arguments: the request, the parameters to encode, and the error that occurred when attempting to encode parameters for the given request.
      */
-    func setQueryStringSerializationWithBlock(encoder: (NSURLRequest, [String:String]) throws -> String) {
+    func setQueryStringSerializationWithBlock(_ encoder: (URLRequest, [String:String]) throws -> String) {
         
     }
     
@@ -181,12 +181,12 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      
      - Returns: An `NSMutableURLRequest` object.
      */
-    func requestWithMethod(method: String, URLString:String, parameters:[String:String]?, body: NSData?) throws -> NSMutableURLRequest {
+    func requestWithMethod(_ method: String, URLString:String, parameters:[String:String]?, body: Data?) throws -> NSMutableURLRequest {
         
-        let url = NSURL(string:URLString)
+        let url = URL(string:URLString)
         
-        let mutableRequest = NSMutableURLRequest(URL:url!)
-        mutableRequest.HTTPMethod = method
+        let mutableRequest = NSMutableURLRequest(url:url!)
+        mutableRequest.httpMethod = method
         
 /*
         for keyPath in SNHTTPRequestSerializerObservedKeyPaths {
@@ -195,12 +195,12 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
             }
         }
   */
-        let r = try self.requestBySerializingRequest(mutableRequest, withParameters:parameters, body:body) // mutableCopy];
+        let r = try self.requestBySerializingRequest(mutableRequest as URLRequest, withParameters:parameters, body:body) // mutableCopy];
         
         return r //.mutableRequest!
     }
     
-    typealias MultipartMakerBlock = SNMultipartFormData->Void
+    typealias MultipartMakerBlock = (SNMultipartFormData)->Void
     /**
      Creates an `NSMutableURLRequest` object with the specified HTTP method and URLString, and constructs a `multipart/form-data` HTTP body, using the specified parameters and multipart form data block. See http://www.w3.org/TR/html4/interact/forms.html#h-17.13.4.2
      
@@ -214,7 +214,7 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
      
      - Returns: An `NSMutableURLRequest` object
      */
-    func multipartFormRequestWithMethod(method: String, URLString:String, parameters:[String:String], block:MultipartMakerBlock?) throws -> NSMutableURLRequest {
+    func multipartFormRequestWithMethod(_ method: String, URLString:String, parameters:[String:String], block:MultipartMakerBlock?) throws -> NSMutableURLRequest {
         
         let mutableRequest = try self.requestWithMethod(method, URLString:URLString, parameters:nil, body: nil)
         
@@ -245,7 +245,7 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
         return mutableRequest
     }
     
-    typealias CompletionBlock = NSError?->Void
+    typealias CompletionBlock = (NSError?)->Void
     /**
      Creates an `NSMutableURLRequest` by removing the `HTTPBodyStream` from a request, and asynchronously writing its contents into the specified file, invoking the completion handler when finished.
      
@@ -309,17 +309,17 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
     }
     */
     
-    private func shouldEncodeParameters(request: NSURLRequest) -> Bool {
-        guard let method = request.HTTPMethod?.uppercaseString else { return false }
+    fileprivate func shouldEncodeParameters(_ request: URLRequest) -> Bool {
+        guard let method = (request as NSURLRequest).httpMethod?.uppercased() else { return false }
         
         return self.HTTPMethodsEncodingParametersInURI.contains(method)
     }
     
-    func requestBySerializingRequest(request: NSURLRequest, withParameters parameters:Parameters?, body: NSData? = nil) throws -> NSMutableURLRequest {
+    func requestBySerializingRequest(_ request: URLRequest, withParameters parameters:Parameters?, body: Data? = nil) throws -> NSMutableURLRequest {
         if let mutableRequest = request.mutableRequest {
             
             for pair in self.headers {
-                if request.valueForHTTPHeaderField(pair.0) == nil {
+                if request.value(forHTTPHeaderField: pair.0) == nil {
                     mutableRequest.setValue(pair.1, forKey: pair.0)
                 }
             }
@@ -330,18 +330,18 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
                 }
             }
             
-            mutableRequest.HTTPBody = body
+            mutableRequest.httpBody = body
             
-            if let p = parameters, serialize = self.queryStringSerializer {
-                var query = try serialize(request, parameters: p)
+            if let p = parameters, let serialize = self.queryStringSerializer {
+                var query = try serialize(request, p)
                 
                 if shouldEncodeParameters(request) {
                     if String.isNotEmpty(query) {
-                        if mutableRequest.URL!.query != nil {
-                            mutableRequest.URL = NSURL(string: request.URL!.absoluteString.stringByAppendingFormat("&%@", query))
+                        if mutableRequest.url!.query != nil {
+                            mutableRequest.url = URL(string: request.url!.absoluteString.stringByAppendingFormat("&%@", query))
                         }
                         else {
-                            mutableRequest.URL = NSURL(string: request.URL!.absoluteString.stringByAppendingFormat("?%@", query))
+                            mutableRequest.url = URL(string: request.url!.absoluteString.stringByAppendingFormat("?%@", query))
                         }
 
                     }
@@ -349,10 +349,10 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
                     // #2864: an empty string is a valid x-www-form-urlencoded payload
                     query = query ?? ""
                     
-                    if mutableRequest.valueForHTTPHeaderField("Content-Type") == nil {
+                    if mutableRequest.value(forHTTPHeaderField: "Content-Type") == nil {
                         mutableRequest.setValue("application/x-www-form-urlencoded", forHTTPHeaderField:"Content-Type")
                     }
-                    mutableRequest.HTTPBody = query.dataUsingEncoding(self.stringEncoding)
+                    mutableRequest.httpBody = query.data(using: self.stringEncoding)
                 }
 
 //                if query == nil {
@@ -368,7 +368,7 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
             return mutableRequest
         }
         else {
-            throw SNError.BadRequest
+            throw SNError.badRequest
         }
     }
     
@@ -395,12 +395,12 @@ public class SNHTTPRequestSerializer: SNURLRequestSerializer {
     
 }
 
-public enum SNError : ErrorType {
-    case BadRequest
-    case InvalidResponse        // either no response or no data
-    case EmptyResponse
-    case FailedResponse(Int,String)    // statusCode
-    case NoLocation             // no NSURL saved
+public enum SNError : Error {
+    case badRequest
+    case invalidResponse        // either no response or no data
+    case emptyResponse
+    case failedResponse(Int,String)    // statusCode
+    case noLocation             // no NSURL saved
 }
 
 public var SNHTTPRequestSerializerObservedKeyPaths = getSNHTTPRequestSerializerObservedKeyPaths()

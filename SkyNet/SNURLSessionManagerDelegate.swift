@@ -10,7 +10,7 @@
 import Foundation
 import FutureKit
 
-class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T == RS.Element> : NSObject, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate {
+class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T == RS.Element> : NSObject, URLSessionTaskDelegate, URLSessionDataDelegate, URLSessionDownloadDelegate {
     var promise = Promise<T>()
     internal var filePromise: Promise<NSURL>?
     
@@ -18,11 +18,11 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
 
     var mutableData: NSMutableData? = NSMutableData()
     
-    typealias DownloadTaskDidFinishDownloadingBlock = (NSURLSession, NSURLSessionDownloadTask, NSURL) -> NSURL?
+    typealias DownloadTaskDidFinishDownloadingBlock = (Foundation.URLSession, URLSessionDownloadTask, URL) -> URL?
     
-    var uploadProgress: NSProgress
-    var downloadProgress: NSProgress
-    var downloadFileURL: NSURL?
+    var uploadProgress: Progress
+    var downloadProgress: Progress
+    var downloadFileURL: URL?
     var downloadTaskDidFinishDownloading: DownloadTaskDidFinishDownloadingBlock?
     var uploadProgressBlock: ProgressBlock?
     var downloadProgressBlock: ProgressBlock?
@@ -30,44 +30,44 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
 
 
     override init() {
-        self.uploadProgress = NSProgress(parent:nil, userInfo:nil)
+        self.uploadProgress = Progress(parent:nil, userInfo:nil)
         self.uploadProgress.totalUnitCount = NSURLSessionTransferSizeUnknown
-        self.downloadProgress = NSProgress(parent:nil, userInfo:nil)
+        self.downloadProgress = Progress(parent:nil, userInfo:nil)
         self.downloadProgress.totalUnitCount = NSURLSessionTransferSizeUnknown
     }
 
     // MARK: NSProgress Tracking
     
-    private func setupProgressForTask(task: NSURLSessionTask) {
+    fileprivate func setupProgressForTask(_ task: URLSessionTask) {
         self.uploadProgress.totalUnitCount = task.countOfBytesExpectedToSend
         self.downloadProgress.totalUnitCount = task.countOfBytesExpectedToReceive
         
-        self.uploadProgress.cancellable = true
+        self.uploadProgress.isCancellable = true
         self.uploadProgress.cancellationHandler = { [weak task] in task?.cancel() }
-        self.uploadProgress.pausable = true
+        self.uploadProgress.isPausable = true
         self.uploadProgress.pausingHandler = { [weak task] in task?.suspend() }
         if #available(iOS 9.0, *) {
             self.uploadProgress.resumingHandler = { [weak task] in task?.resume() }
         }
         
-        self.downloadProgress.cancellable=true
+        self.downloadProgress.isCancellable=true
         self.downloadProgress.cancellationHandler = {[weak task] in task?.cancel() }
-        self.downloadProgress.pausable = true
+        self.downloadProgress.isPausable = true
         self.downloadProgress.pausingHandler = {[weak task] in task?.suspend() }
         if #available(iOS 9.0, *) {
             self.downloadProgress.resumingHandler = {[weak task] in task?.resume() }
         }
         
-        task.addObserver(self, forKeyPath:"countOfBytesReceived", options:.New, context:nil)
-        task.addObserver(self, forKeyPath:"countOfBytesExpectedToReceive", options:.New, context:nil)
-        task.addObserver(self, forKeyPath:"countOfBytesSent", options:.New, context:nil)
-        task.addObserver(self, forKeyPath:"countOfBytesExpectedToSend", options:.New, context:nil)
+        task.addObserver(self, forKeyPath:"countOfBytesReceived", options:.new, context:nil)
+        task.addObserver(self, forKeyPath:"countOfBytesExpectedToReceive", options:.new, context:nil)
+        task.addObserver(self, forKeyPath:"countOfBytesSent", options:.new, context:nil)
+        task.addObserver(self, forKeyPath:"countOfBytesExpectedToSend", options:.new, context:nil)
         
-        self.downloadProgress.addObserver(self, forKeyPath:"fractionCompleted", options:.New, context:nil)
-        self.uploadProgress.addObserver(self, forKeyPath:"fractionCompleted", options:.New, context:nil)
+        self.downloadProgress.addObserver(self, forKeyPath:"fractionCompleted", options:.new, context:nil)
+        self.uploadProgress.addObserver(self, forKeyPath:"fractionCompleted", options:.new, context:nil)
     }
     
-    private func cleanupProgressForTask(task: NSURLSessionTask) {
+    fileprivate func cleanupProgressForTask(_ task: URLSessionTask) {
         task.removeObserver(self, forKeyPath:"countOfBytesReceived")
         task.removeObserver(self, forKeyPath:"countOfBytesExpectedToReceive")
         task.removeObserver(self, forKeyPath:"countOfBytesSent")
@@ -112,7 +112,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
         For tasks in background sessions, redirections will always be followed and this method will not be called.
      */
     
-    func URLSession(session: NSURLSession, task:NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest:NSURLRequest, completionHandler:(NSURLRequest?) -> Void) {
+    func urlSession(_ session: URLSession, task:URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest:URLRequest, completionHandler:@escaping (URLRequest?) -> Void) {
         
     }
     
@@ -122,7 +122,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      The task has received a request specific authentication challenge.  If this delegate is not implemented, the session specific authentication challenge will *NOT* be called and the behavior will be the same as using the default handling disposition.
      */
     
-    func URLSession(session: NSURLSession, task:NSURLSessionTask, didReceiveChallenge challenge: NSURLAuthenticationChallenge, completionHandler:(NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
+    func urlSession(_ session: URLSession, task:URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler:@escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         
     }
     
@@ -132,7 +132,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      Sent if a task requires a new, unopened body stream.  This may be necessary when authentication has failed for any request that involves a body stream.
      */
     
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, needNewBodyStream completionHandler:(NSInputStream?)->Void) {
+    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler:@escaping (InputStream?)->Void) {
         
     }
     
@@ -142,7 +142,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      Sent periodically to notify the delegate of upload progress.  This information is also available as properties of the task.
      */
     
-    func URLSession(session: NSURLSession, task:NSURLSessionTask, didSendBodyData bytesSent:Int64, totalBytesSent:Int64, totalBytesExpectedToSend:Int64) {
+    func urlSession(_ session: URLSession, task:URLSessionTask, didSendBodyData bytesSent:Int64, totalBytesSent:Int64, totalBytesExpectedToSend:Int64) {
         
     }
     
@@ -153,7 +153,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      The last message a session receives.  A session will only become invalid because of a systemic error or when it has been explicitly invalidated, in which case the error parameter will be nil.
      */
-    func URLSession(session: NSURLSession, didBecomeInvalidWithError error: NSError?) {
+    func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
         
     }
     
@@ -162,14 +162,14 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      If implemented, when a connection level authentication challenge has occurred, this delegate will be given the opportunity to provide authentication credentials to the underlying connection. Some types of authentication will apply to more than one request on a given connection to a server (SSL Server Trust challenges).  If this delegate message is not implemented, the behavior will be to use the default handling, which may involve user interaction.
      */
-    func URLSession(session: NSURLSession, didReceiveChallenge challenge: NSURLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         
     }
     
     /**
      If an application has received an -application:handleEventsForBackgroundURLSession:completionHandler: message, the session delegate will receive this message to indicate that all messages previously enqueued for this session have been delivered.  At this time it is safe to invoke the previously stored completion handler, or to begin any internal updates that will result in invoking the completion handler.
      */
-    func URLSessionDidFinishEventsForBackgroundURLSession(session: NSURLSession) {
+    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
         
     }
 
@@ -191,7 +191,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      Notification that a data task has become a download task.  No future messages will be sent to the data task.
      */
-    func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didBecomeDownloadTask downloadTask: NSURLSessionDownloadTask) {
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
         
     }
     
@@ -205,7 +205,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      The underlying connection is no longer considered part of the HTTP connection cache and won't count against the total number of connections per host.
      */
     @available(iOS 9.0, *)
-    func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didBecomeStreamTask streamTask: NSURLSessionStreamTask) {
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask) {
         
     }
     
@@ -214,10 +214,10 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      Sent when data is available for the delegate to consume.  It is assumed that the delegate will retain and not copy the data.  As the data may be discontiguous, you should use [NSData enumerateByteRangesUsingBlock:] to access it.
      */
-    func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData data: NSData) {
-        self.mutableData!.appendData(data)
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        self.mutableData!.append(data)
         
-        self.downloadProgress.completedUnitCount += data.length
+        self.downloadProgress.completedUnitCount += data.count
         
         self.downloadProgressBlock?(self.downloadProgress)
     }
@@ -227,7 +227,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      Invoke the completion routine with a valid NSCachedURLResponse to allow the resulting data to be cached, or pass nil to prevent caching. Note that there is no guarantee that caching will be attempted for a given resource, and you should not rely on this message to receive the resource data.
      */
-    func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, willCacheResponse proposedResponse: NSCachedURLResponse, completionHandler: (NSCachedURLResponse?) -> Void) {
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void) {
         
     }
 
@@ -236,15 +236,15 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      Sent as the last message related to a specific task.  Error may be nil, which implies that no error occurred and this task is complete.
      */
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         
 //        __block NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
 //        userInfo[SNNetworkingTaskDidCompleteResponseSerializerKey] = manager.responseSerializer;
 //        
 //        //Performance Improvement from #2672
-        var data: NSData?
+        var data: Data?
         if self.mutableData != nil {
-            data = self.mutableData!.copy() as? NSData
+            data = self.mutableData!.copy() as? Data
             self.mutableData = nil
         }
 //            data = [self.mutableData copy];
@@ -263,13 +263,13 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
         if let error = error {
             // userInfo[SNNetworkingTaskDidCompleteErrorKey] = error
             
-            dispatch_group_async(manager!.completionGroup, manager!.completionQueue, {
+            (manager!.completionQueue).async(group: manager!.completionGroup, execute: {
                 self.promise.completeWithFail(error)
             })
         }
         else {
             if let r = task.response, let d = data {
-                dispatch_async(url_session_manager_processing_queue, { () -> Void in
+                url_session_manager_processing_queue.async(execute: { () -> Void in
                     do {
                         let responseObject = try self.manager!.responseSerializer.responseObjectForResponse(r, data:d)
                         self.promise.completeWithSuccess(responseObject)
@@ -297,13 +297,13 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      Sent when a download task that has completed a download.  The delegate should copy or move the file at the given location to a new location as it will be removed when the delegate message returns. URLSession:task:didCompleteWithError: will still be called.
      */
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didFinishDownloadingToURL location: NSURL) {
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         
         if (self.downloadTaskDidFinishDownloading != nil) {
             self.downloadFileURL = self.downloadTaskDidFinishDownloading!(session, downloadTask, location)
                 
             do {
-                try NSFileManager.defaultManager().moveItemAtURL(location, toURL:self.downloadFileURL!)
+                try FileManager.default.moveItem(at: location, to:self.downloadFileURL!)
             }
             catch let e {
                 self.filePromise!.completeWithFail(e)
@@ -323,7 +323,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      Sent periodically to notify the delegate of download progress. 
      */
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         NSLog("foo")
     }
     
@@ -332,7 +332,7 @@ class SNURLSessionManagerTaskDelegate<T, RS : SNURLResponseSerializer where T ==
      
      Sent when a download has been resumed. If a download failed with an error, the -userInfo dictionary of the error will contain an NSURLSessionDownloadTaskResumeData key, whose value is the resume data.
      */
-    func URLSession(session: NSURLSession, downloadTask: NSURLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {
         
     }
 }

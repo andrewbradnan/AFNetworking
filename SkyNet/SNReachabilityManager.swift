@@ -11,89 +11,89 @@ import Foundation
 import SystemConfiguration
 import SwiftCommon
 
-enum ReachabilityError: ErrorType {
-    case UnableToSetCallback
-    case UnableToSetDispatchQueue
-    case NotifierNotRunning
+enum ReachabilityError: Error {
+    case unableToSetCallback
+    case unableToSetDispatchQueue
+    case notifierNotRunning
 }
 
-func callback(reachability:SCNetworkReachability, flags: SCNetworkReachabilityFlags, info: UnsafeMutablePointer<Void>) {
+func callback(_ reachability:SCNetworkReachability, flags: SCNetworkReachabilityFlags, info: UnsafeMutableRawPointer) {
     let mgr: SNReachabilityManager = bridge(info)
 
     mgr.reachabilityFlags = flags
-    dispatch_async(dispatch_get_main_queue()) {
+    DispatchQueue.main.async {
         mgr.reachabilityChanged.fire(flags)
     }
 }
 
 extension SCNetworkReachabilityFlags {
-    public static func reachabilityFlags(flags: SCNetworkReachabilityFlags) -> String {
+    public static func reachabilityFlags(_ flags: SCNetworkReachabilityFlags) -> String {
         return String(format: "%@%@%@%@%@%@%@%@%@",
-                      flags.contains(.IsWWAN)               ? "W" : "-",
-                      flags.contains(.Reachable)            ? "R" : "-",
-                      flags.contains(.ConnectionRequired)   ? "c" : "-",
-                      flags.contains(.TransientConnection)  ? "t" : "-",
-                      flags.contains(.InterventionRequired) ? "i" : "-",
-                      flags.contains(.ConnectionOnTraffic)  ? "C" : "-",
-                      flags.contains(.ConnectionOnDemand)   ? "D" : "-",
-                      flags.contains(.IsLocalAddress)       ? "l" : "-",
-                      flags.contains(.IsDirect)             ? "d" : "-")
+                      flags.contains(.isWWAN)               ? "W" : "-",
+                      flags.contains(.reachable)            ? "R" : "-",
+                      flags.contains(.connectionRequired)   ? "c" : "-",
+                      flags.contains(.transientConnection)  ? "t" : "-",
+                      flags.contains(.interventionRequired) ? "i" : "-",
+                      flags.contains(.connectionOnTraffic)  ? "C" : "-",
+                      flags.contains(.connectionOnDemand)   ? "D" : "-",
+                      flags.contains(.isLocalAddress)       ? "l" : "-",
+                      flags.contains(.isDirect)             ? "d" : "-")
     }
 }
 
-public class SNReachabilityManager {
+open class SNReachabilityManager {
     
-    public var reachabilityChanged = Event<SCNetworkReachabilityFlags>()
-    public var reachabilityFlags: SCNetworkReachabilityFlags = []
+    open var reachabilityChanged = Event<SCNetworkReachabilityFlags>()
+    open var reachabilityFlags: SCNetworkReachabilityFlags = []
 
-    private let _networkReachability: SCNetworkReachabilityRef
-    public var networkReachability: SCNetworkReachabilityRef {
+    fileprivate let _networkReachability: SCNetworkReachability
+    open var networkReachability: SCNetworkReachability {
         get {
             return _networkReachability
         }
     }
     
-    public static let sharedManager = SNReachabilityManager()
+    open static let sharedManager = SNReachabilityManager()
 
     
-    public var isConnectionAvailble: Bool {
+    open var isConnectionAvailble: Bool {
         return self.isReachable && (!self.isConnectionRequired || self.canConnectWithoutUserInteraction)
     }
-    public var isTransientConnection: Bool {
-        return self.reachabilityFlags.contains(.TransientConnection)
+    open var isTransientConnection: Bool {
+        return self.reachabilityFlags.contains(.transientConnection)
     }
-    public var isReachable: Bool {
-        return self.reachabilityFlags.contains(.Reachable)
+    open var isReachable: Bool {
+        return self.reachabilityFlags.contains(.reachable)
     }
-    public var isConnectionRequired: Bool {
-        return self.reachabilityFlags.contains(.ConnectionRequired)
+    open var isConnectionRequired: Bool {
+        return self.reachabilityFlags.contains(.connectionRequired)
     }
-    public var isConnectionOnTraffic: Bool {
-        return self.reachabilityFlags.contains(.ConnectionOnTraffic)
+    open var isConnectionOnTraffic: Bool {
+        return self.reachabilityFlags.contains(.connectionOnTraffic)
     }
-    public var isInterventionRequired: Bool {
-        return self.reachabilityFlags.contains(.InterventionRequired)
+    open var isInterventionRequired: Bool {
+        return self.reachabilityFlags.contains(.interventionRequired)
     }
-    public var isConnectionOnDemand: Bool {
-        return self.reachabilityFlags.contains(.ConnectionOnDemand)
+    open var isConnectionOnDemand: Bool {
+        return self.reachabilityFlags.contains(.connectionOnDemand)
     }
-    public var isLocalAddress: Bool {
-        return self.reachabilityFlags.contains(.IsLocalAddress)
+    open var isLocalAddress: Bool {
+        return self.reachabilityFlags.contains(.isLocalAddress)
     }
-    public var isDirect: Bool {
-        return self.reachabilityFlags.contains(.IsDirect)
+    open var isDirect: Bool {
+        return self.reachabilityFlags.contains(.isDirect)
     }
-    public var isWWAN: Bool {
-        return self.reachabilityFlags.contains(.IsWWAN)
+    open var isWWAN: Bool {
+        return self.reachabilityFlags.contains(.isWWAN)
     }
-    public var isConnectionAutomatic: Bool {
-        return self.reachabilityFlags.contains(.ConnectionAutomatic)
+    open var isConnectionAutomatic: Bool {
+        return self.reachabilityFlags.contains(.connectionAutomatic)
     }
-    public var canConnectAutomatically: Bool {
-        return self.reachabilityFlags.contains(.ConnectionOnDemand) || self.reachabilityFlags.contains(.ConnectionOnTraffic)
+    open var canConnectAutomatically: Bool {
+        return self.reachabilityFlags.contains(.connectionOnDemand) || self.reachabilityFlags.contains(.connectionOnTraffic)
     }
-    public var canConnectWithoutUserInteraction: Bool {
-        return self.canConnectAutomatically && !self.reachabilityFlags.contains(.InterventionRequired)
+    open var canConnectWithoutUserInteraction: Bool {
+        return self.canConnectAutomatically && !self.reachabilityFlags.contains(.interventionRequired)
     }
 
     public convenience init?(domain: String) {
@@ -108,13 +108,13 @@ public class SNReachabilityManager {
     
     public convenience init?(address: UInt32) {
         var localWifiAddress: sockaddr_in = sockaddr_in(sin_len: __uint8_t(0), sin_family: sa_family_t(0), sin_port: in_port_t(0), sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
-        localWifiAddress.sin_len = UInt8(sizeofValue(localWifiAddress))
+        localWifiAddress.sin_len = UInt8(MemoryLayout.size(ofValue: localWifiAddress))
         localWifiAddress.sin_family = sa_family_t(AF_INET)
         
         // IN_LINKLOCALNETNUM is defined in <netinet/in.h> as 169.254.0.0
         localWifiAddress.sin_addr.s_addr = in_addr_t(address.bigEndian)
         
-        guard let ref = withUnsafePointer(&localWifiAddress, {
+        guard let ref = withUnsafePointer(to: &localWifiAddress, {
             SCNetworkReachabilityCreateWithAddress(nil, UnsafePointer($0))
         }) else { return nil }
         
@@ -123,10 +123,10 @@ public class SNReachabilityManager {
     
     public convenience init?() {
         var zeroAddress = sockaddr_in()
-        zeroAddress.sin_len = UInt8(sizeofValue(zeroAddress))
+        zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
         zeroAddress.sin_family = sa_family_t(AF_INET)
         
-        guard let defaultRouteReachability = withUnsafePointer(&zeroAddress, {
+        guard let defaultRouteReachability = withUnsafePointer(to: &zeroAddress, {
             SCNetworkReachabilityCreateWithAddress(nil, UnsafePointer($0))
         }) else {
             return nil
@@ -135,29 +135,29 @@ public class SNReachabilityManager {
         self.init(reachability: defaultRouteReachability)
     }
 
-    public init(reachability:SCNetworkReachabilityRef) {
+    public init(reachability:SCNetworkReachability) {
         self._networkReachability = reachability
     }
     
-    private let reachabilitySerialQueue = dispatch_queue_create("com.phyn.reachability", DISPATCH_QUEUE_SERIAL)
-    private var notifierRunning: Bool = false
+    fileprivate let reachabilitySerialQueue = DispatchQueue(label: "com.phyn.reachability", attributes: [])
+    fileprivate var notifierRunning: Bool = false
     
-    public func startMonitoring() throws {
+    open func startMonitoring() throws {
         self.stopMonitoring()
         
-        guard !notifierRunning else { throw ReachabilityError.NotifierNotRunning }
+        guard !notifierRunning else { throw ReachabilityError.notifierNotRunning }
         
         var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
         context.info = bridge(self)
         
         if !SCNetworkReachabilitySetCallback(self.networkReachability, callback, &context) {
             stopMonitoring()
-            throw ReachabilityError.UnableToSetCallback
+            throw ReachabilityError.unableToSetCallback
         }
         
         if !SCNetworkReachabilitySetDispatchQueue(self.networkReachability, self.reachabilitySerialQueue) {
             stopMonitoring()
-            throw ReachabilityError.UnableToSetDispatchQueue
+            throw ReachabilityError.unableToSetDispatchQueue
         }
         
         notifierRunning = true
@@ -172,19 +172,19 @@ public class SNReachabilityManager {
         self.reachabilityChanged.fire(self.reachabilityFlags)
     }
     
-    public func stopMonitoring() {
-        SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes)
+    open func stopMonitoring() {
+        SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability, CFRunLoopGetMain(), CFRunLoopMode.commonModes as! CFString)
         notifierRunning = false
     }
 }
 
-func bridge<T : AnyObject>(obj : T) -> UnsafeMutablePointer<Void> {
+func bridge<T : AnyObject>(_ obj : T) -> UnsafeMutableRawPointer {
     return UnsafeMutablePointer(Unmanaged.passUnretained(obj).toOpaque())
     // return unsafeAddressOf(obj) // ***
 }
 
-func bridge<T : AnyObject>(ptr : UnsafeMutablePointer<Void>) -> T {
-    return Unmanaged<T>.fromOpaque(COpaquePointer(ptr)).takeUnretainedValue()
+func bridge<T : AnyObject>(_ ptr : UnsafeMutableRawPointer) -> T {
+    return Unmanaged<T>.fromOpaque(OpaquePointer(ptr)).takeUnretainedValue()
     // return unsafeBitCast(ptr, T.self) // ***
 }
 

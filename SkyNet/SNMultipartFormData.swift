@@ -25,7 +25,7 @@ protocol SNMultipartFormData {
      
      - Returns: `true` if the file data was successfully appended, otherwise `false`.
      */
-    func appendPartWithFileURL(fileURL: NSURL, name: String) throws -> Bool
+    func appendPartWithFileURL(_ fileURL: URL, name: String) throws -> Bool
     
     /**
      Appends the HTTP header `Content-Disposition: file; filename=#{filename}; name=#{name}"` and `Content-Type: #{mimeType}`, followed by the encoded file data and the multipart form boundary.
@@ -38,7 +38,7 @@ protocol SNMultipartFormData {
      
      - Returns: `true` if the file data was successfully appended otherwise `false`.
      */
-    func appendPartWithFileURL(fileURL: NSURL, name:String, fileName: String, mimeType: String) throws -> Bool
+    func appendPartWithFileURL(_ fileURL: URL, name:String, fileName: String, mimeType: String) throws -> Bool
     
     /**
      Appends the HTTP header `Content-Disposition: file; filename=#{filename}; name=#{name}"` and `Content-Type: #{mimeType}`, followed by the data from the input stream and the multipart form boundary.
@@ -49,7 +49,7 @@ protocol SNMultipartFormData {
      - Parameter length: The length of the specified input stream in bytes.
      - Parameter mimeType: The MIME type of the specified data. (For example, the MIME type for a JPEG image is image/jpeg.) For a list of valid MIME types, see http://www.iana.org/assignments/media-types/. This parameter must not be `nil`.
      */
-    func appendPartWithInputStream(inputStream: NSInputStream?, name: String, fileName:String, length:Int64, mimeType: String)
+    func appendPartWithInputStream(_ inputStream: InputStream?, name: String, fileName:String, length:Int64, mimeType: String)
     
     /**
      Appends the HTTP header `Content-Disposition: file; filename=#{filename}; name=#{name}"` and `Content-Type: #{mimeType}`, followed by the encoded file data and the multipart form boundary.
@@ -59,7 +59,7 @@ protocol SNMultipartFormData {
      - Parameter fileName: The filename to be associated with the specified data. This parameter must not be `nil`.
      - Parameter mimeType: The MIME type of the specified data. (For example, the MIME type for a JPEG image is image/jpeg.) For a list of valid MIME types, see http://www.iana.org/assignments/media-types/. This parameter must not be `nil`.
      */
-    func appendPartWithFileData(data: NSData, name: String, fileName: String, mimeType: String)
+    func appendPartWithFileData(_ data: Data, name: String, fileName: String, mimeType: String)
     
     /**
      Appends the HTTP headers `Content-Disposition: form-data; name=#{name}"`, followed by the encoded data and the multipart form boundary.
@@ -68,7 +68,7 @@ protocol SNMultipartFormData {
      - Parameter name: The name to be associated with the specified data. This parameter must not be `nil`.
      */
     
-    func appendPartWithFormData(data: NSData, name: String)
+    func appendPartWithFormData(_ data: Data, name: String)
     
     
     /**
@@ -77,7 +77,7 @@ protocol SNMultipartFormData {
      - Parameter headers: The HTTP headers to be appended to the form data.
      - Parameter body: The data to be encoded and appended to the form data. This parameter must not be `nil`.
      */
-    func appendPartWithHeaders(headers: [String:String], body: NSData)
+    func appendPartWithHeaders(_ headers: [String:String], body: Data)
     
     /**
      Throttles request bandwidth by limiting the packet size and adding a delay for each chunk read from the upload stream.
@@ -87,6 +87,6 @@ protocol SNMultipartFormData {
      - Parameter numberOfBytes: Maximum packet size, in number of bytes. The default packet size for an input stream is 16kb.
      - Parameter delay: Duration of delay each time a packet is read. By default, no delay is set.
      */
-    func throttleBandwidthWithPacketSize(numberOfBytes: UInt, delay: NSTimeInterval)
+    func throttleBandwidthWithPacketSize(_ numberOfBytes: UInt, delay: TimeInterval)
     
 }

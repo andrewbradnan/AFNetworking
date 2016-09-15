@@ -10,7 +10,7 @@
 import Foundation
 
 extension String {
-    static func isNotEmpty(s: String?) -> Bool {
+    static func isNotEmpty(_ s: String?) -> Bool {
         return !(s?.isEmpty ?? true)
     }
 }

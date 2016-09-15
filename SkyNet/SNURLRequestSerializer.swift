@@ -10,7 +10,7 @@
 import Foundation
 
 public enum SNHTTPRequestQueryStringSerializationStyle {
-    case Default
+    case `default`
 }
 
 protocol SNURLRequestSerializer {
@@ -23,6 +23,6 @@ protocol SNURLRequestSerializer {
      
      - returns: A serialized request.
      */
-    func requestBySerializingRequest(request: NSURLRequest, withParameters:Parameters?, body: NSData?) throws -> NSMutableURLRequest
+    func requestBySerializingRequest(_ request: URLRequest, withParameters:Parameters?, body: Data?) throws -> NSMutableURLRequest
 }
 

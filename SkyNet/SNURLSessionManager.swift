@@ -87,34 +87,34 @@ import SwiftyJSON
  @warning Managers for background sessions must be owned for the duration of their use. This can be accomplished by creating an application-wide or shared singleton instance.
  */
 
-public typealias ProgressBlock = (NSProgress)->Void
+public typealias ProgressBlock = (Progress)->Void
 
-var url_session_manager_completion_group = dispatch_group_create()
-var url_session_manager_creation_queue = dispatch_queue_create("com.alamofire.networking.session.manager.creation", DISPATCH_QUEUE_SERIAL)
-var url_session_manager_completion_queue = dispatch_queue_create("com.alamofire.networking.session.manager.completion", DISPATCH_QUEUE_CONCURRENT)
-var url_session_manager_processing_queue = dispatch_queue_create("com.alamofire.networking.session.manager.processing", DISPATCH_QUEUE_CONCURRENT)
+var url_session_manager_completion_group = DispatchGroup()
+var url_session_manager_creation_queue = DispatchQueue(label: "com.alamofire.networking.session.manager.creation", attributes: [])
+var url_session_manager_completion_queue = DispatchQueue(label: "com.alamofire.networking.session.manager.completion", attributes: DispatchQueue.Attributes.concurrent)
+var url_session_manager_processing_queue = DispatchQueue(label: "com.alamofire.networking.session.manager.processing", attributes: DispatchQueue.Attributes.concurrent)
 
 let SNMaximumNumberOfAttemptsToRecreateBackgroundSessionUploadTask = 3
 
-public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer where T == ResponseSerializer.Element> : NSObject, NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate /* , NSSecureCoding, NSCopying*/ {
+open class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer where T == ResponseSerializer.Element> : NSObject, URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate, URLSessionDownloadDelegate /* , NSSecureCoding, NSCopying*/ {
     
     
     /// The managed session.
-    var session: NSURLSession
+    var session: Foundation.URLSession
     
     /// The operation queue on which delegate callbacks are run.
-    public let operationQueue = NSOperationQueue()
+    open let operationQueue = OperationQueue()
 
     /**
      Responses sent from the server in data tasks created with `dataTaskWithRequest:success:failure:` and run using the `GET` / `POST` / et al. convenience methods are automatically validated and serialized by the response serializer. By default, this property is set to an instance of `AFJSONResponseSerializer`.
      */
-    public var responseSerializer: ResponseSerializer
+    open var responseSerializer: ResponseSerializer
     
     // MARK: Managing Security Policy
     /**
      The security policy used by created session to evaluate server trust for secure connections. `SNURLSessionManager` uses the `defaultPolicy` unless otherwise specified.
      */
-    public var securityPolicy = SNSecurityPolicy.defaultPolicy
+    open var securityPolicy = SNSecurityPolicy.defaultPolicy
     
     #if !TARGET_OS_WATCH
     // MARK: Monitoring Network Reachability
@@ -126,22 +126,22 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
     // MARK: Getting Session Tasks
 
     /// The data, upload, and download tasks currently run by the managed session.
-    let tasks: [NSURLSessionTask] = []
+    let tasks: [URLSessionTask] = []
     
     /// The data tasks currently run by the managed session.
-    let dataTasks: [NSURLSessionDataTask] = []
+    let dataTasks: [URLSessionDataTask] = []
     
     /// The upload tasks currently run by the managed session.
-    let uploadTasks: [NSURLSessionUploadTask] = []
+    let uploadTasks: [URLSessionUploadTask] = []
     
     /// The download tasks currently run by the managed session.
-    let downloadTasks: [NSURLSessionDownloadTask] = []
+    let downloadTasks: [URLSessionDownloadTask] = []
     
     // MARK: Managing Callback Queues
     
-    private var _completionQueue: dispatch_queue_t?
+    fileprivate var _completionQueue: DispatchQueue?
     /// The dispatch queue for `completionBlock`. If `nil` (default), the main queue is used.
-    var completionQueue: dispatch_queue_t {
+    var completionQueue: DispatchQueue {
         get {
             return _completionQueue ?? url_session_manager_completion_queue
         }
@@ -150,9 +150,9 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         }
     }
     
-    private var _completionGroup: dispatch_group_t?
+    fileprivate var _completionGroup: DispatchGroup?
     /// The dispatch group for `completionBlock`. If `nil` (default), a private dispatch group is used.
-    public var completionGroup: dispatch_group_t {
+    open var completionGroup: DispatchGroup {
         get {
             return _completionGroup ?? url_session_manager_completion_group
         }
@@ -161,9 +161,9 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         }
     }
     
-    let uploadProgress: NSProgress? = nil
-    let downloadProgress: NSProgress? = nil
-    var sessionConfiguration: NSURLSessionConfiguration
+    let uploadProgress: Progress? = nil
+    let downloadProgress: Progress? = nil
+    var sessionConfiguration: URLSessionConfiguration
     var taskDelegates: [Int:SNURLSessionManagerTaskDelegate<T,ResponseSerializer>] = [:]
     var taskDescriptionForSessionTasks: String {
         get {
@@ -172,39 +172,39 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
     }
     var lock: NSLock
     
-    public typealias BecomeInvalidBlock = (NSURLSession) throws -> Void
-    public typealias ChallengeBlock = (NSURLSession, NSURLAuthenticationChallenge, inout NSURLCredential?) -> NSURLSessionAuthChallengeDisposition
-    public typealias NSURLSessionBlock = NSURLSession->Void
-    public typealias RedirectionBlock = (NSURLSession, NSURLSessionTask, NSURLResponse, NSURLRequest)->NSURLRequest?
-    public typealias TaskChallengeBlock = (NSURLSession, NSURLSessionTask, NSURLAuthenticationChallenge, inout NSURLCredential?)->NSURLSessionAuthChallengeDisposition
-    public typealias TaskNeedNewBodyStreamBlock = (NSURLSession, NSURLSessionTask)->NSInputStream?
-    public typealias TaskDidSendBodyDataBlock = (NSURLSession, NSURLSessionTask, Int64, Int64, Int64)->Void
-    public typealias TaskDidCompleteBlock = (NSURLSession, NSURLSessionTask) throws ->Void
-    public typealias TaskDidReceiveResponseBlock = (NSURLSession, NSURLSessionDataTask, NSURLResponse)->NSURLSessionResponseDisposition
-    public typealias DataTaskDidBecomeDownloadTaskBlock = (NSURLSession, NSURLSessionDataTask, NSURLSessionDownloadTask)->Void
-    public typealias DataTaskDidReceiveDataBlock = (NSURLSession, NSURLSessionDataTask, NSData)->Void
-    public typealias DataTaskWillCacheResponseBlock = (NSURLSession, NSURLSessionDataTask, NSCachedURLResponse)->NSCachedURLResponse
-    public typealias DownloadTaskDidFinishDownloadingBlock = (NSURLSession, NSURLSessionDownloadTask, NSURL)->NSURL?
-    public typealias DownloadTaskDidWriteDataBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64, Int64)->Void
-    public typealias DownloadTaskDidResumeBlock = (NSURLSession, NSURLSessionDownloadTask, Int64, Int64)->Void
+    open typealias BecomeInvalidBlock = (Foundation.URLSession) throws -> Void
+    open typealias ChallengeBlock = (Foundation.URLSession, URLAuthenticationChallenge, inout URLCredential?) -> Foundation.URLSession.AuthChallengeDisposition
+    open typealias NSURLSessionBlock = (Foundation.URLSession)->Void
+    open typealias RedirectionBlock = (Foundation.URLSession, URLSessionTask, URLResponse, URLRequest)->URLRequest?
+    open typealias TaskChallengeBlock = (Foundation.URLSession, URLSessionTask, URLAuthenticationChallenge, inout URLCredential?)->Foundation.URLSession.AuthChallengeDisposition
+    open typealias TaskNeedNewBodyStreamBlock = (Foundation.URLSession, URLSessionTask)->InputStream?
+    open typealias TaskDidSendBodyDataBlock = (Foundation.URLSession, URLSessionTask, Int64, Int64, Int64)->Void
+    open typealias TaskDidCompleteBlock = (Foundation.URLSession, URLSessionTask) throws ->Void
+    open typealias TaskDidReceiveResponseBlock = (Foundation.URLSession, URLSessionDataTask, URLResponse)->Foundation.URLSession.ResponseDisposition
+    open typealias DataTaskDidBecomeDownloadTaskBlock = (Foundation.URLSession, URLSessionDataTask, URLSessionDownloadTask)->Void
+    open typealias DataTaskDidReceiveDataBlock = (Foundation.URLSession, URLSessionDataTask, Data)->Void
+    open typealias DataTaskWillCacheResponseBlock = (Foundation.URLSession, URLSessionDataTask, CachedURLResponse)->CachedURLResponse
+    open typealias DownloadTaskDidFinishDownloadingBlock = (Foundation.URLSession, URLSessionDownloadTask, URL)->URL?
+    open typealias DownloadTaskDidWriteDataBlock = (Foundation.URLSession, URLSessionDownloadTask, Int64, Int64, Int64)->Void
+    open typealias DownloadTaskDidResumeBlock = (Foundation.URLSession, URLSessionDownloadTask, Int64, Int64)->Void
     /**
      Sets a block to be executed when a connection level authentication challenge has occurred, as handled by the `NSURLSessionDelegate` method `URLSession:didReceiveChallenge:completionHandler:`.
      
      - Parameter block: A block object to be executed when a connection level authentication challenge has occurred. The block returns the disposition of the authentication challenge, and takes three arguments: the session, the authentication challenge, and a pointer to the credential that should be used to resolve the challenge.
      */
-    public var sessionDidBecomeInvalid: BecomeInvalidBlock?
+    open var sessionDidBecomeInvalid: BecomeInvalidBlock?
     /**
      Sets a block to be executed when a connection level authentication challenge has occurred, as handled by the `NSURLSessionDelegate` method `URLSession:didReceiveChallenge:completionHandler:`.
      
      - Parameter block: A block object to be executed when a connection level authentication challenge has occurred. The block returns the disposition of the authentication challenge, and takes three arguments: the session, the authentication challenge, and a pointer to the credential that should be used to resolve the challenge.
      */
-    public var sessionDidReceiveAuthenticationChallenge: ChallengeBlock?
+    open var sessionDidReceiveAuthenticationChallenge: ChallengeBlock?
     /**
      Sets a block to be executed once all messages enqueued for a session have been delivered, as handled by the `NSURLSessionDataDelegate` method `URLSessionDidFinishEventsForBackgroundURLSession:`.
      
      - Parameter block: A block object to be executed once all messages enqueued for a session have been delivered. The block has no return value and takes a single argument: the session.
      */
-    public var didFinishEventsForBackgroundURLSession: NSURLSessionBlock?
+    open var didFinishEventsForBackgroundURLSession: NSURLSessionBlock?
     /**
      Sets a block to be executed when an HTTP request is attempting to perform a redirection to a different URL, as handled by the `NSURLSessionTaskDelegate` method `URLSession:willPerformHTTPRedirection:newRequest:completionHandler:`.
      
@@ -216,74 +216,74 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
                 }
      ```
      */
-    public var taskWillPerformHTTPRedirection: RedirectionBlock?
+    open var taskWillPerformHTTPRedirection: RedirectionBlock?
     /**
      Sets a block to be executed when a session task has received a request specific authentication challenge, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didReceiveChallenge:completionHandler:`.
      
      - Parameter block: A block object to be executed when a session task has received a request specific authentication challenge. The block returns the disposition of the authentication challenge, and takes four arguments: the session, the task, the authentication challenge, and a pointer to the credential that should be used to resolve the challenge.
      */
-    public var taskDidReceiveAuthenticationChallenge: TaskChallengeBlock?
+    open var taskDidReceiveAuthenticationChallenge: TaskChallengeBlock?
     /**
      Sets a block to be executed when a task requires a new request body stream to send to the remote server, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:needNewBodyStream:`.
      
      - Parameter block: A block object to be executed when a task requires a new request body stream.
      */
-    public var taskNeedNewBodyStream: TaskNeedNewBodyStreamBlock?
+    open var taskNeedNewBodyStream: TaskNeedNewBodyStreamBlock?
     /**
      Sets a block to be executed periodically to track upload progress, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didSendBodyData:totalBytesSent:totalBytesExpectedToSend:`.
      
      - Parameter block: A block object to be called when an undetermined number of bytes have been uploaded to the server. This block has no return value and takes five arguments: the session, the task, the number of bytes written since the last time the upload progress block was called, the total bytes written, and the total bytes expected to be written during the request, as initially determined by the length of the HTTP body. This block may be called multiple times, and will execute on the main thread.
      */
-    public var taskDidSendBodyData: TaskDidSendBodyDataBlock?
+    open var taskDidSendBodyData: TaskDidSendBodyDataBlock?
     /**
      Sets a block to be executed as the last message related to a specific task, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didCompleteWithError:`.
      
      - Parameter block: A block object to be executed when a session task is completed. The block has no return value, and takes three arguments: the session, the task, and any error that occurred in the process of executing the task.
      */
-    public var taskDidComplete: TaskDidCompleteBlock?
+    open var taskDidComplete: TaskDidCompleteBlock?
     /**
      Sets a block to be executed when a data task has received a response, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:didReceiveResponse:completionHandler:`.
      
      - Parameter block: A block object to be executed when a data task has received a response. The block returns the disposition of the session response, and takes three arguments: the session, the data task, and the received response.
      */
-    public var dataTaskDidReceiveResponse: TaskDidReceiveResponseBlock?
+    open var dataTaskDidReceiveResponse: TaskDidReceiveResponseBlock?
     /**
      Sets a block to be executed when a data task has become a download task, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:didBecomeDownloadTask:`.
      
      - Parameter block: A block object to be executed when a data task has become a download task. The block has no return value, and takes three arguments: the session, the data task, and the download task it has become.
      */
-    public var dataTaskDidBecomeDownloadTask: DataTaskDidBecomeDownloadTaskBlock?
+    open var dataTaskDidBecomeDownloadTask: DataTaskDidBecomeDownloadTaskBlock?
     /**
      Sets a block to be executed when a data task receives data, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:didReceiveData:`.
      
      - Parameter block: A block object to be called when an undetermined number of bytes have been downloaded from the server. This block has no return value and takes three arguments: the session, the data task, and the data received. This block may be called multiple times, and will execute on the session manager operation queue.
      */
-    public var dataTaskDidReceiveData: DataTaskDidReceiveDataBlock?
+    open var dataTaskDidReceiveData: DataTaskDidReceiveDataBlock?
     
     /**
      Sets a block to be executed to determine the caching behavior of a data task, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:willCacheResponse:completionHandler:`.
      
      - Parameter block: A block object to be executed to determine the caching behavior of a data task. The block returns the response to cache, and takes three arguments: the session, the data task, and the proposed cached URL response.
      */
-    public var dataTaskWillCacheResponse: DataTaskWillCacheResponseBlock?
+    open var dataTaskWillCacheResponse: DataTaskWillCacheResponseBlock?
     /**
      Sets a block to be executed when a download task has completed a download, as handled by the `NSURLSessionDownloadDelegate` method `URLSession:downloadTask:didFinishDownloadingToURL:`.
      
      - Parameter block: A block object to be executed when a download task has completed. The block returns the URL the download should be moved to, and takes three arguments: the session, the download task, and the temporary location of the downloaded file. If the file manager encounters an error while attempting to move the temporary file to the destination, an `AFURLSessionDownloadTaskDidFailToMoveFileNotification` will be posted, with the download task as its object, and the user info of the error.
      */
-    public var downloadTaskDidFinishDownloading: DownloadTaskDidFinishDownloadingBlock?
+    open var downloadTaskDidFinishDownloading: DownloadTaskDidFinishDownloadingBlock?
     /**
      Sets a block to be executed periodically to track download progress, as handled by the `NSURLSessionDownloadDelegate` method `URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesWritten:totalBytesExpectedToWrite:`.
      
      - Parameter block: A block object to be called when an undetermined number of bytes have been downloaded from the server. This block has no return value and takes five arguments: the session, the download task, the number of bytes read since the last time the download progress block was called, the total bytes read, and the total bytes expected to be read during the request, as initially determined by the expected content size of the `NSHTTPURLResponse` object. This block may be called multiple times, and will execute on the session manager operation queue.
      */
-    public var downloadTaskDidWriteData: DownloadTaskDidWriteDataBlock?
+    open var downloadTaskDidWriteData: DownloadTaskDidWriteDataBlock?
     /**
      Sets a block to be executed when a download task has been resumed, as handled by the `NSURLSessionDownloadDelegate` method `URLSession:downloadTask:didResumeAtOffset:expectedTotalBytes:`.
      
      - Parameter block: A block object to be executed when a download task has been resumed. The block has no return value and takes four arguments: the session, the download task, the file offset of the resumed download, and the total number of bytes expected to be downloaded.
      */
-    public var downloadTaskDidResume: DownloadTaskDidResumeBlock?
+    open var downloadTaskDidResume: DownloadTaskDidResumeBlock?
     
     // MARK: Working Around System Bugs
     
@@ -303,14 +303,14 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      
      - Parameter configuration: The configuration used to create the managed session.
      */
-    init(configuration: NSURLSessionConfiguration? = nil, rs: ResponseSerializer) {
+    init(configuration: URLSessionConfiguration? = nil, rs: ResponseSerializer) {
         var conf = configuration
         if conf == nil {
-            conf = NSURLSessionConfiguration.defaultSessionConfiguration()
+            conf = URLSessionConfiguration.default
         }
 
         self.sessionConfiguration = conf!
-        self.session = NSURLSession(configuration: self.sessionConfiguration, delegate:nil, delegateQueue:self.operationQueue)
+        self.session = Foundation.URLSession(configuration: self.sessionConfiguration, delegate:nil, delegateQueue:self.operationQueue)
         self.responseSerializer = rs
         self.lock = NSLock()
         
@@ -318,7 +318,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         
         self.operationQueue.maxConcurrentOperationCount = 1
         
-        self.session = NSURLSession(configuration: self.sessionConfiguration, delegate:self, delegateQueue:self.operationQueue)
+        self.session = Foundation.URLSession(configuration: self.sessionConfiguration, delegate:self, delegateQueue:self.operationQueue)
         
         #if !TARGET_OS_WATCH
             self.reachabilityManager = SNReachabilityManager.sharedManager!
@@ -327,7 +327,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         self.lock = NSLock()
         self.lock.name = "SNURLSessionManagerLockName"
         
-        self.session.getTasksWithCompletionHandler{ (dataTasks: [NSURLSessionDataTask], uploadTasks: [NSURLSessionUploadTask], downloadTasks:[NSURLSessionDownloadTask]) -> Void in
+        self.session.getTasksWithCompletionHandler{ (dataTasks: [URLSessionDataTask], uploadTasks: [URLSessionUploadTask], downloadTasks:[URLSessionDownloadTask]) -> Void in
             for task in dataTasks {
                 self.addDelegateForDataTask(task, uploadProgress:nil, downloadProgress:nil)
             }
@@ -350,8 +350,8 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      
      - Parameter cancelPendingTasks: Whether or not to cancel pending tasks.
      */
-    public func invalidateSessionCancelingTasks(cancelPendingTasks: Bool) {
-        dispatch_async(dispatch_get_main_queue(), {
+    open func invalidateSessionCancelingTasks(_ cancelPendingTasks: Bool) {
+        DispatchQueue.main.async(execute: {
             if (cancelPendingTasks) {
                 self.session.invalidateAndCancel()
             }
@@ -376,7 +376,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
 //        return self.dataTaskWithRequest(request uploadProgress:nil downloadProgress:nil completionHandler:completionHandler];
 //    }
     
-    typealias CompletionHandler = (NSURLResponse, AnyObject?, NSError?)->Void
+    typealias CompletionHandler = (URLResponse, AnyObject?, NSError?)->Void
     
     /**
      Creates an `NSURLSessionDataTask` with the specified request.
@@ -385,8 +385,8 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      - Parameter uploadProgressBlock: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
      - Parameter downloadProgressBlock: A block object to be executed when the download progress is updated. Note this block is called on the session queue, not the main queue.
      */
-    public func dataTaskWithRequest(request: NSURLRequest, uploadProgress: ProgressBlock? = nil, downloadProgress:ProgressBlock? = nil) -> Future<T> {
-        let dataTask = self.session.dataTaskWithRequest(request)
+    open func dataTaskWithRequest(_ request: URLRequest, uploadProgress: ProgressBlock? = nil, downloadProgress:ProgressBlock? = nil) -> Future<T> {
+        let dataTask = self.session.dataTask(with: request)
         let rt = self.addDelegateForDataTask(dataTask, uploadProgress:uploadProgress, downloadProgress:downloadProgress)
         dataTask.resume()
         
@@ -394,7 +394,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
     }
     
     
-    func addDelegateForDataTask(dataTask: NSURLSessionDataTask, uploadProgress:ProgressBlock?, downloadProgress:ProgressBlock?) -> Future<T>
+    func addDelegateForDataTask(_ dataTask: URLSessionDataTask, uploadProgress:ProgressBlock?, downloadProgress:ProgressBlock?) -> Future<T>
     {
         let delegate = SNURLSessionManagerTaskDelegate<T, ResponseSerializer>()
         delegate.manager = self
@@ -411,7 +411,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         return delegate.promise.future
     }
 
-    func addDelegateForUploadTask(uploadTask: NSURLSessionUploadTask, progress:ProgressBlock?) -> Future<T>
+    func addDelegateForUploadTask(_ uploadTask: URLSessionUploadTask, progress:ProgressBlock?) -> Future<T>
     //completionHandler:(void (^)(NSURLResponse *response, id responseObject, NSError *error))completionHandler
     {
         let delegate = SNURLSessionManagerTaskDelegate<T, ResponseSerializer>()
@@ -426,15 +426,15 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         return delegate.promise.future
     }
     
-    func addDelegateForDownloadTask(downloadTask: NSURLSessionDownloadTask, progress: ProgressBlock?,
+    func addDelegateForDownloadTask(_ downloadTask: URLSessionDownloadTask, progress: ProgressBlock?,
     destination:SNURLSessionManager<T,ResponseSerializer>.TargetBlock?) -> Future<NSURL>
     {
         let delegate = SNURLSessionManagerTaskDelegate<T, ResponseSerializer>()
-        delegate.filePromise = Promise<NSURL>()
+        delegate.filePromise = Promise<URL>()
         delegate.manager = self
     
         if (destination != nil) {
-            delegate.downloadTaskDidFinishDownloading = { (NSURLSession, task: NSURLSessionDownloadTask, location: NSURL) -> NSURL? in
+            delegate.downloadTaskDidFinishDownloading = { (NSURLSession, task: URLSessionDownloadTask, location: URL) -> URL? in
                 return destination!(location, task.response!)
             }
         }
@@ -459,19 +459,19 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      
      - Seealso: `attemptsToRecreateUploadTasksForBackgroundSessions`
      */
-    func uploadTaskWithRequest(request: NSURLRequest, fromFile fileURL:NSURL, progress: ProgressBlock?) -> NSURLSessionUploadTask? {
+    func uploadTaskWithRequest(_ request: URLRequest, fromFile fileURL:URL, progress: ProgressBlock?) -> URLSessionUploadTask? {
                                // completionHandler:CompletionHandler?
-        var uploadTask: NSURLSessionUploadTask?
+        var uploadTask: URLSessionUploadTask?
         
         url_session_manager_create_task_safely({
-            uploadTask = self.session.uploadTaskWithRequest(request, fromFile:fileURL)
+            uploadTask = self.session.uploadTask(with: request, fromFile:fileURL)
         })
         
         if (uploadTask == nil) {
             if self.attemptsToRecreateUploadTasksForBackgroundSessions {
                 if (self.session.configuration.identifier != nil) {
                     for _ in 0..<SNMaximumNumberOfAttemptsToRecreateBackgroundSessionUploadTask {
-                        uploadTask = self.session.uploadTaskWithRequest(request, fromFile:fileURL)
+                        uploadTask = self.session.uploadTask(with: request, fromFile:fileURL)
                         if uploadTask != nil { break }
                     }
                 }}
@@ -494,11 +494,11 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      - Parameter uploadProgressBlock: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
      - Parameter completionHandler: A block object to be executed when the task finishes. This block has no return value and takes three arguments: the server response, the response object created by that serializer, and the error that occurred, if any.
      */
-    func uploadTaskWithRequest(request: NSURLRequest, fromData bodyData:NSData, progress:ProgressBlock?) -> NSURLSessionUploadTask? {
-        var uploadTask: NSURLSessionUploadTask?
+    func uploadTaskWithRequest(_ request: URLRequest, fromData bodyData:Data, progress:ProgressBlock?) -> URLSessionUploadTask? {
+        var uploadTask: URLSessionUploadTask?
         
         url_session_manager_create_task_safely({
-            uploadTask = self.session.uploadTaskWithRequest(request, fromData:bodyData)
+            uploadTask = self.session.uploadTask(with: request, from:bodyData)
         })
         
         guard let task = uploadTask else { return nil }
@@ -515,11 +515,11 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      - Parameter uploadProgressBlock: A block object to be executed when the upload progress is updated. Note this block is called on the session queue, not the main queue.
      - Parameter completionHandler: A block object to be executed when the task finishes. This block has no return value and takes three arguments: the server response, the response object created by that serializer, and the error that occurred, if any.
      */
-    func uploadTaskWithStreamedRequest(request: NSURLRequest, progress:ProgressBlock?) -> NSURLSessionUploadTask? {
-        var uploadTask: NSURLSessionUploadTask?
+    func uploadTaskWithStreamedRequest(_ request: URLRequest, progress:ProgressBlock?) -> URLSessionUploadTask? {
+        var uploadTask: URLSessionUploadTask?
         
         url_session_manager_create_task_safely({
-            uploadTask = self.session.uploadTaskWithStreamedRequest(request)
+            uploadTask = self.session.uploadTask(withStreamedRequest: request)
         })
 
         guard let task = uploadTask else { return nil }
@@ -533,7 +533,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
     // MARK: Running Download Tasks
     
     
-    public typealias TargetBlock = (NSURL, NSURLResponse) -> NSURL?
+    open typealias TargetBlock = (URL, URLResponse) -> URL?
     /**
      Creates an `NSURLSessionDownloadTask` with the specified request.
      
@@ -544,8 +544,8 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      
      @warning If using a background `NSURLSessionConfiguration` on iOS, these blocks will be lost when the app is terminated. Background sessions may prefer to use `-setDownloadTaskDidFinishDownloadingBlock:` to specify the URL for saving the downloaded file, rather than the destination block of this method.
      */
-    public func downloadTaskWithRequest(request: NSURLRequest, progress:ProgressBlock? = nil, destination:TargetBlock? = nil)-> Future<NSURL> {
-        let downloadTask = self.session.downloadTaskWithRequest(request)
+    open func downloadTaskWithRequest(_ request: URLRequest, progress:ProgressBlock? = nil, destination:TargetBlock? = nil)-> Future<NSURL> {
+        let downloadTask = self.session.downloadTask(with: request)
         
         let f = self.addDelegateForDownloadTask(downloadTask, progress:progress, destination:destination)
         downloadTask.resume()
@@ -561,11 +561,11 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      - Parameter destination: A block object to be executed in order to determine the destination of the downloaded file. This block takes two arguments, the target path & the server response, and returns the desired file URL of the resulting download. The temporary file used during the download will be automatically deleted after being moved to the returned URL.
      - Parameter completionHandler: A block to be executed when a task finishes. This block has no return value and takes three arguments: the server response, the path of the downloaded file, and the error describing the network or parsing error that occurred, if any.
      */
-    func downloadTaskWithResumeData(resumeData: NSData, progress:ProgressBlock?, destination:TargetBlock,
-                                    completionHandler:CompletionHandler?) -> NSURLSessionDownloadTask {
-        var downloadTask: NSURLSessionDownloadTask
+    func downloadTaskWithResumeData(_ resumeData: Data, progress:ProgressBlock?, destination:TargetBlock,
+                                    completionHandler:CompletionHandler?) -> URLSessionDownloadTask {
+        var downloadTask: URLSessionDownloadTask
         //url_session_manager_create_task_safely({
-            downloadTask = self.session.downloadTaskWithResumeData(resumeData)
+            downloadTask = self.session.downloadTask(withResumeData: resumeData)
         //})
         
         self.addDelegateForDownloadTask(downloadTask, progress:progress, destination:destination)
@@ -584,7 +584,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      
      - Returns: An `NSProgress` object reporting the upload progress of a task, or `nil` if the progress is unavailable.
      */
-    func uploadProgressForTask(task: NSURLSessionTask) -> NSProgress? {
+    func uploadProgressForTask(_ task: URLSessionTask) -> Progress? {
         return self.taskDelegates[task.taskIdentifier]?.uploadProgress
     }
     
@@ -595,11 +595,11 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      
      - Returns: An `NSProgress` object reporting the download progress of a task, or `nil` if the progress is unavailable.
      */
-    func downloadProgressForTask(task: NSURLSessionTask) -> NSProgress? {
+    func downloadProgressForTask(_ task: URLSessionTask) -> Progress? {
         return self.taskDelegates[task.taskIdentifier]?.downloadProgress
     }
     
-    public func URLSession(session: NSURLSession, downloadTask:NSURLSessionDownloadTask, didFinishDownloadingToURL location:NSURL) {
+    open func urlSession(_ session: URLSession, downloadTask:URLSessionDownloadTask, didFinishDownloadingTo location:URL) {
         if let delegate = self.taskDelegates[downloadTask.taskIdentifier] {
     
             if self.downloadTaskDidFinishDownloading != nil {
@@ -608,7 +608,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
                 if fileURL != nil {
                     delegate.downloadFileURL = fileURL
                     do {
-                        try NSFileManager.defaultManager().moveItemAtURL(location, toURL:fileURL!)
+                        try FileManager.default.moveItem(at: location, to:fileURL!)
                     }
                     catch _ {
                         // TODO: error
@@ -616,11 +616,11 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
                 }
             }
         
-            delegate.URLSession(session, downloadTask:downloadTask, didFinishDownloadingToURL:location)
+            delegate.urlSession(session, downloadTask:downloadTask, didFinishDownloadingTo:location)
         }
     }
     
-    public func URLSession(session: NSURLSession, downloadTask:NSURLSessionDownloadTask, didWriteData bytesWritten:Int64, totalBytesWritten:Int64, totalBytesExpectedToWrite:Int64) {
+    open func urlSession(_ session: URLSession, downloadTask:URLSessionDownloadTask, didWriteData bytesWritten:Int64, totalBytesWritten:Int64, totalBytesExpectedToWrite:Int64) {
         self.downloadTaskDidWriteData?(session, downloadTask, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
         
         if let delegate = self.taskDelegates[downloadTask.taskIdentifier] {
@@ -631,10 +631,10 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         }
     }
 
-    public func URLSession(session: NSURLSession, task: NSURLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+    open func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
         var totalUnitCount = Int64(totalBytesExpectedToSend)
         if(totalUnitCount == NSURLSessionTransferSizeUnknown) {
-            if let contentLength = task.originalRequest?.valueForHTTPHeaderField("Content-Length") {
+            if let contentLength = task.originalRequest?.value(forHTTPHeaderField: "Content-Length") {
                 totalUnitCount = Int64(contentLength) ?? NSURLSessionTransferSizeUnknown
             }
         }
@@ -649,7 +649,7 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         }
     }
     
-    public func URLSession(session: NSURLSession, downloadTask:NSURLSessionDownloadTask, didResumeAtOffset fileOffset:Int64, expectedTotalBytes:Int64) {
+    open func urlSession(_ session: URLSession, downloadTask:URLSessionDownloadTask, didResumeAtOffset fileOffset:Int64, expectedTotalBytes:Int64) {
         self.downloadTaskDidResume?(session, downloadTask, fileOffset, expectedTotalBytes)
     }
     
@@ -658,17 +658,17 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
      
      Sent when data is available for the delegate to consume.  It is assumed that the delegate will retain and not copy the data.  As the data may be discontiguous, you should use [NSData enumerateByteRangesUsingBlock:] to access it.
      */
-    public func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData data: NSData) {
+    open func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         let delegate = self.taskDelegates[dataTask.taskIdentifier]
         
-        delegate?.URLSession(session, dataTask:dataTask, didReceiveData:data)
+        delegate?.urlSession(session, dataTask:dataTask, didReceive:data)
     }
 
     
-    public func URLSession(session: NSURLSession, didReceiveChallenge challenge: NSURLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
-        var disposition = NSURLSessionAuthChallengeDisposition.PerformDefaultHandling
+    open func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        var disposition = Foundation.URLSession.AuthChallengeDisposition.performDefaultHandling
         
-        var credential: NSURLCredential?
+        var credential: URLCredential?
         
         if ((self.sessionDidReceiveAuthenticationChallenge) != nil) {
             disposition = self.sessionDidReceiveAuthenticationChallenge!(session, challenge, &credential)
@@ -676,30 +676,30 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         else {
             if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
                 if self.securityPolicy.evaluateServerTrust(challenge.protectionSpace.serverTrust!, forDomain:challenge.protectionSpace.host) {
-                    credential = NSURLCredential(forTrust: challenge.protectionSpace.serverTrust!)
+                    credential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
                     if (credential != nil) {
-                        disposition = .UseCredential
+                        disposition = .useCredential
                     }
                     else {
-                        disposition = .PerformDefaultHandling
+                        disposition = .performDefaultHandling
                     }
                 }
                 else {
-                    disposition = .CancelAuthenticationChallenge
+                    disposition = .cancelAuthenticationChallenge
                 }
             }
             else {
-                disposition = .PerformDefaultHandling
+                disposition = .performDefaultHandling
             }
         }
         
         completionHandler(disposition, credential)
     }
     
-    public func URLSession(session: NSURLSession, task: NSURLSessionTask, didReceiveChallenge challenge: NSURLAuthenticationChallenge, completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Void) {
-        var disposition = NSURLSessionAuthChallengeDisposition.PerformDefaultHandling
+    open func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        var disposition = Foundation.URLSession.AuthChallengeDisposition.performDefaultHandling
 
-        var credential: NSURLCredential?
+        var credential: URLCredential?
         
         if (self.taskDidReceiveAuthenticationChallenge != nil) {
             disposition = self.taskDidReceiveAuthenticationChallenge!(session, task, challenge, &credential)
@@ -707,21 +707,21 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
         else {
             if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
                 if self.securityPolicy.evaluateServerTrust(challenge.protectionSpace.serverTrust!, forDomain: challenge.protectionSpace.host) {
-                    disposition = .UseCredential
-                    credential = NSURLCredential(forTrust: challenge.protectionSpace.serverTrust!)
+                    disposition = .useCredential
+                    credential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
                 }
                 else {
-                    disposition = .CancelAuthenticationChallenge
+                    disposition = .cancelAuthenticationChallenge
                 }
             }
             else {
-                disposition = .PerformDefaultHandling
+                disposition = .performDefaultHandling
             }
         }
         
         completionHandler(disposition, credential);
     }
-    public func URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError error: NSError?) {
+    open func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         // delegate may be nil when completing a task in the background
         if let delegate = self.taskDelegates[task.taskIdentifier] {
 
@@ -729,9 +729,9 @@ public class SNURLSessionManager<T, ResponseSerializer : SNURLResponseSerializer
             delegate.downloadProgress.totalUnitCount = Int64(delegate.mutableData!.length)
             delegate.downloadProgressBlock?(delegate.downloadProgress)
             
-            delegate.URLSession(session, task:task, didCompleteWithError:error)
+            delegate.urlSession(session, task:task, didCompleteWithError:error)
             
-            self.taskDelegates.removeValueForKey(task.taskIdentifier)
+            self.taskDelegates.removeValue(forKey: task.taskIdentifier)
         }
         
         try! self.taskDidComplete?(session, task)
@@ -773,6 +773,6 @@ let SNNetworkingTaskDidCompleteAssetPathKey = "com.alamofire.networking.task.com
 let SNNetworkingTaskDidCompleteErrorKey = "com.alamofire.networking.task.complete.error"
 
 
-func url_session_manager_create_task_safely(block: dispatch_block_t) {
+func url_session_manager_create_task_safely(_ block: ()->()) {
     block()
 }

@@ -39,11 +39,11 @@ public protocol SNURLResponseSerializer /* <NSObject, NSSecureCoding, NSCopying>
      
      - Returns: The object decoded from the specified response data.
      */
-    func responseObjectForResponse(response: NSURLResponse, data:NSData) throws -> Element
+    func responseObjectForResponse(_ response: URLResponse, data:Data) throws -> Element
 }
 
 extension SNURLResponseSerializer {
-    public func checkContentType(response: NSHTTPURLResponse) {
+    public func checkContentType(_ response: HTTPURLResponse) {
         if let ct = response.allHeaderFields["Content-Type" as NSObject] as? String {
             if !self.acceptableContentTypes.contains(ct) {
                 fatalError("bad type")
@@ -51,10 +51,10 @@ extension SNURLResponseSerializer {
         }
     }
 
-    public func checkStatus(response: NSHTTPURLResponse, data: NSData) throws {
+    public func checkStatus(_ response: HTTPURLResponse, data: Data) throws {
         let sc = response.statusCode
         if !self.acceptableStatusCodes.contains(sc) {
-            throw SNError.FailedResponse(sc, String(data: data, encoding: NSUTF8StringEncoding) ?? "Could not decode error response.")
+            throw SNError.failedResponse(sc, String(data: data, encoding: String.Encoding.utf8) ?? "Could not decode error response.")
         }
     }
 }

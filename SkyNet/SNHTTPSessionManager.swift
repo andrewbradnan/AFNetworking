@@ -72,16 +72,16 @@ import SwiftyJSON
 
 public typealias Parameters = [String:String]
 
-public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.Element> : SNURLSessionManager<T, RS> /*, NSSecureCoding, NSCopying*/ {
+open class SNHTTPSessionManager<T, RS : SNURLResponseSerializer> : SNURLSessionManager<T, RS> where T == RS.Element /*, NSSecureCoding, NSCopying*/ {
 
     /// The URL used to construct requests from relative paths in methods like `requestWithMethod:URLString:parameters:`, and the `GET` / `POST` / et al. convenience methods.  When a `baseURL` is provided, requests made with the `GET` / `POST` / et al. convenience methods can be made with relative paths.
-    let baseURL: NSURL?
+    let baseURL: URL?
     
     /**
      Requests created with `requestWithMethod:URLString:parameters:` & `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:` are constructed with a set of default headers using a parameter serialization specified by this property. By default, this is set to an instance of `SNHTTPRequestSerializer`, which serializes query string parameters for `GET`, `HEAD`, and `DELETE` requests, or otherwise URL-form-encodes HTTP message bodies.
      
      */
-    public var requestSerializer: SNHTTPRequestSerializer
+    open var requestSerializer: SNHTTPRequestSerializer
     
     // MARK: Initialization
     
@@ -95,11 +95,11 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      
      - Parameter url: The base URL for the HTTP client.
      */
-    public convenience init(baseURL: NSURL? = nil, rs: RS) {
+    public convenience init(baseURL: URL? = nil, rs: RS) {
         self.init(baseURL: baseURL, sessionConfiguration: nil, rs: rs)
     }
     
-    public typealias ConverterBlock = JSON throws -> T
+    public typealias ConverterBlock = (JSON) throws -> T
     /**
      Initializes an `SNHTTPSessionManager` object with the specified base URL.
      
@@ -108,7 +108,7 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      - Parameter url: The base URL for the HTTP client.
      - Parameter configuration: The configuration used to create the managed session.
      */
-    public init(baseURL:NSURL?, sessionConfiguration:NSURLSessionConfiguration?, rs: RS) {
+    public init(baseURL:URL?, sessionConfiguration:URLSessionConfiguration?, rs: RS) {
         // Ensure terminal slash for baseURL path, so that NSURL +URLWithString:relativeToURL: works as expected
         if var url = baseURL {
             url = url.ensureTrailingSlash()
@@ -136,7 +136,7 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      
      - seealso: dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler
      */
-    public func GET(url: String, parameters:Parameters?, downloadProgress:ProgressBlock?) -> Future<T> {
+    open func GET(_ url: String, parameters:Parameters?, downloadProgress:ProgressBlock?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("GET",
                             url:url,
                             parameters:parameters,
@@ -154,7 +154,7 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      
      - seealso: dataTaskWithRequest:completionHandler:
      */
-    public func HEAD(url: String, parameters:Parameters?)-> Future<T> {
+    open func HEAD(_ url: String, parameters:Parameters?)-> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("HEAD",
                                              url:url,
                                              parameters:parameters,
@@ -173,7 +173,7 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      
      - seealso: -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
      */
-    public func POST(url: String, parameters:Parameters?, body: NSData?, uploadProgress:ProgressBlock?) -> Future<T> {
+    open func POST(_ url: String, parameters:Parameters?, body: Data?, uploadProgress:ProgressBlock?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("POST",
                                              url:url,
                                              parameters:parameters,
@@ -196,7 +196,7 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
     //DEPRECATED_ATTRIBUTE;
     //    func POST(url: String, parameters:P?, constructingBodyWithBlock:(nullable void (^)(id <SNMultipartFormData> formData))block
     
-    typealias MultiPartMakerBlock = SNMultipartFormData -> Void
+    typealias MultiPartMakerBlock = (SNMultipartFormData) -> Void
     /**
      Creates and runs an `NSURLSessionDataTask` with a multipart `POST` request.
      
@@ -219,7 +219,7 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
-    public func PUT(url: String, parameters:Parameters?) -> Future<T> {
+    open func PUT(_ url: String, parameters:Parameters?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("PUT",
                                              url:url,
                                              parameters:parameters,
@@ -237,7 +237,7 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
-    public func PATCH(url: String, parameters:Parameters?) -> Future<T> {
+    open func PATCH(_ url: String, parameters:Parameters?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("PATCH",
                                              url:url,
                                              parameters:parameters,
@@ -255,7 +255,7 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
-    public func DELETE(url: String, parameters:Parameters?) -> Future<T> {
+    open func DELETE(_ url: String, parameters:Parameters?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("DELETE",
                                              url:url,
                                              parameters:parameters,
@@ -265,9 +265,9 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
         return rt
     }
     
-    public func dataTaskWithHTTPMethod(method: String, url:String, parameters:Parameters?, body: NSData?, uploadProgress:ProgressBlock?, downloadProgress:ProgressBlock?) -> Future<T> {
+    open func dataTaskWithHTTPMethod(_ method: String, url:String, parameters:Parameters?, body: Data?, uploadProgress:ProgressBlock?, downloadProgress:ProgressBlock?) -> Future<T> {
         do {
-            let urlString = NSURL(string: url, relativeToURL:self.baseURL)!.absoluteString
+            let urlString = URL(string: url, relativeTo:self.baseURL)!.absoluteString
             
             let request = try self.requestSerializer.requestWithMethod(method, URLString:urlString, parameters:parameters, body: body)
             
