@@ -38,6 +38,9 @@ public class SNJSONResponseSerializer<T> : SNURLResponseSerializer {
     public init(converter: JSON throws -> T) {
         self.jsonConverter = converter
         self.acceptableContentTypes = ["application/json", "text/json", "text/javascript"]
+        for rt in 200..<300 {
+            self.acceptableStatusCodes.append(rt)
+        }
     }
 
     var jsonConverter: JSONConverter
