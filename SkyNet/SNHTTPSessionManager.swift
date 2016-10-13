@@ -219,11 +219,11 @@ public class SNHTTPSessionManager<T, RS : SNURLResponseSerializer where T == RS.
      
      - seealso: -dataTaskWithRequest:completionHandler:
      */
-    public func PUT(url: String, parameters:Parameters?) -> Future<T> {
+    public func PUT(url: String, parameters:Parameters?, body: NSData?) -> Future<T> {
         let rt = self.dataTaskWithHTTPMethod("PUT",
                                              url:url,
                                              parameters:parameters,
-                                             body: nil,
+                                             body: body,
                                              uploadProgress:nil,
                                              downloadProgress:nil)
         return rt
